@@ -1,0 +1,12 @@
+package com.betvn.aptech88.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.betvn.aptech88.model.leauge;
+
+
+@Repository
+public interface leaugeRepository extends JpaRepository<leauge, Integer> {
+	
+}

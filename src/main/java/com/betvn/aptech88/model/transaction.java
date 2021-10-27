@@ -47,14 +47,14 @@ public class transaction {
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "from_wallet", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private wallet from_wallet;
 	
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "to_wallet", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private wallet to_wallet;
 

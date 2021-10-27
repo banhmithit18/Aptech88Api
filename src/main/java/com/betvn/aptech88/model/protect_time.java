@@ -2,6 +2,7 @@ package com.betvn.aptech88.model;
 
 import java.util.List;
 
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,20 +12,19 @@ import javax.persistence.Table;
 
 import javax.persistence.Id;
 
-
 @Entity
 @Table(name = "protect_time")
 public class protect_time {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
+
 	@Column(name = "name")
 	private String name;
-	
+
 	@Column(name = "value")
 	private int value;
-	
+
 	@OneToMany(mappedBy = "protect_time")
 	private List<account> account;
 
@@ -60,8 +60,4 @@ public class protect_time {
 		this.account = account;
 	}
 
-	
-	
-	
 }
-

@@ -42,14 +42,14 @@ public class betdetail {
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "bet_id", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private bet bet;
 	
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "odd_id", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private odd odd;
 

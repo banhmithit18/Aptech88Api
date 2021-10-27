@@ -49,7 +49,7 @@ public class bet {
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "wallet_id", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private wallet wallet;
 	

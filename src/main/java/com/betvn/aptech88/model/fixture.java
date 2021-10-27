@@ -69,21 +69,21 @@ public class fixture {
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "leauge_id", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private leauge leauge;
 	
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "home", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private team homeTeam;
 	
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "away", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private team awayTeam;
 

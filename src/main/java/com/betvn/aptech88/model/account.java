@@ -1,5 +1,7 @@
 package com.betvn.aptech88.model;
 
+import java.sql.Date;
+import java.sql.Time;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -12,8 +14,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import javax.persistence.Id;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -55,6 +55,9 @@ public class account {
 	@Column(name = "protect_time_id")
 	private int proctectTimeId;
 	
+	@Column(name = "protect_time_start")
+	private Date protectTimeStart;
+	
 	@Column(name = "country")
 	private String country;
 	
@@ -67,10 +70,18 @@ public class account {
 	@Column(name = "today_deposit")
 	private double todayDeposit;
 	
+	@Column(name = "verified_code")
+	private String verifiedCode;
+	
+	@Column(name = "verified_create_date")
+	private Time verifiedCreateDate;
+	
+	@Column(name = "banned_reason")
+	private String bannedReason;
+	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
-	@OnDelete(action = OnDeleteAction.CASCADE)
+	@JoinColumn(name = "protect_time_id", referencedColumnName = "id", insertable = false, updatable = false)
 	private protect_time protect_time;
 
 	@OneToMany(mappedBy = "account")
@@ -163,6 +174,14 @@ public class account {
 	public void setProctectTimeId(int proctectTimeId) {
 		this.proctectTimeId = proctectTimeId;
 	}
+	
+	public Date getProtectTimeStart() {
+		return protectTimeStart;
+	}
+
+	public void setProtectTimeStart(Date protectTimeStart) {
+		this.protectTimeStart = protectTimeStart;
+	}
 
 	public String getCountry() {
 		return country;
@@ -211,8 +230,30 @@ public class account {
 	public void setWallet(List<wallet> wallet) {
 		this.wallet = wallet;
 	}
-	
-	
+
+	public String getVerifiedCode() {
+		return verifiedCode;
+	}
+
+	public void setVerifiedCode(String verifiedCode) {
+		this.verifiedCode = verifiedCode;
+	}
+
+	public Time getVerifiedCreateDate() {
+		return verifiedCreateDate;
+	}
+
+	public void setVerifiedCreateDate(Time verifiedCreateDate) {
+		this.verifiedCreateDate = verifiedCreateDate;
+	}
+
+	public String getBannedReason() {
+		return bannedReason;
+	}
+
+	public void setBannedReason(String bannedReason) {
+		this.bannedReason = bannedReason;
+	}
 	
 	
 		

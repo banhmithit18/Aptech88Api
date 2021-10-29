@@ -1,5 +1,7 @@
 package com.betvn.aptech88.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +17,13 @@ import ultis.mapping;
 @Controller
 public class protect_timeController {
 	@Autowired protect_timeRepository protect_times;
+	
+	//get all protect_time
+	@RequestMapping(value= mapping.PROTECT_TIME_GET)
+	public @ResponseBody List<protect_time> get(){
+		List<protect_time> list_protect = protect_times.findAllByIdNot(1);
+		return list_protect;
+	}
 	
 	//create protect_time
 	@RequestMapping(value = mapping.PROTECT_TIME_CREATE, method = RequestMethod.POST, consumes = {"application/json"})
@@ -45,12 +54,13 @@ public class protect_timeController {
 	}
 	
 	//edit protect_time
+	@RequestMapping(value = mapping.PROTECT_TIME_EDIT, method = RequestMethod.POST, consumes = {"application/json"})
 	public @ResponseBody protect_time edit(@RequestBody protect_time p)
 	{
 		//find protect_time
 		protect_time edit = protect_times.findById(p.getId());
 		//check if name is same
-		if(edit.getName() == p.getName()) {
+		if((edit.getName()).equals(p.getName())) {
 			//return if save sucess;
 			return protect_times.save(p);
 		}
@@ -78,7 +88,7 @@ public class protect_timeController {
 		if(delete != null)
 		{
 			try {
-				protect_times.delete(delete);
+				protect_times.deleteById(id);
 				//if delete sucessfully return delete
 				return delete;
 			}catch (Exception ex)

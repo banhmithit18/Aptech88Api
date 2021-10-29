@@ -2,8 +2,12 @@ package com.betvn.aptech88.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
+import java.sql.Date;
 import java.sql.Time;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -46,6 +50,14 @@ public class accountController {
 	
 	@Autowired
 	JavaMailSender emailSender;
+	
+	//get account
+	@RequestMapping(value = mapping.ACCOUNT_GET)
+	public @ResponseBody List<account> get()
+	{
+		List<account> account_list = accounts.findAll();
+		return account_list;
+	}
     // create account
 	@RequestMapping(value = mapping.ACCOUNT_CREATE, method = RequestMethod.POST, consumes = { "application/json" })
 	public @ResponseBody account create(@RequestBody account c) {
@@ -118,14 +130,36 @@ public class accountController {
 			//if found, set verified = true and return success
 			acc.setVerified(true);
 			acc.setVerifiedCode(null);
+			acc.setVerifiedCreateDate(null);
 			accounts.save(acc);
 			return true;
 		}
 	}
 	
+	// maximum deposit, only required id and maximum_deposit value
+	@RequestMapping(value = mapping.ACCOUNT_MAXIUMUM_DEPOSIT, method = RequestMethod.POST, consumes = {"application/json"})
+	public @ResponseBody account maximum(@RequestBody account acc)
+	{
+		//find account
+		acc =accounts.findById(acc.getId());
+		if(accounts != null)
+		{
+			//return account
+			acc.setMaximumDeposit(acc.getMaximumDeposit());
+			return accounts.save(acc);
+		}
+		
+		else
+		{
+			//return with id = 0 if not found account
+			acc.setId(0);
+			return acc;
+		}
+	}
+	
 	//send verified
 	@RequestMapping(value = mapping.ACCOUNT_SEND_VERIFY, method = RequestMethod.POST,consumes = { "application/json" })
-	public @ResponseBody Boolean resendVerify(@RequestBody int id)
+	public @ResponseBody Boolean sendVerify(@RequestBody int id)
 	{
 		//find account
 		account acc = accounts.findById(id);
@@ -136,6 +170,11 @@ public class accountController {
 		}
 		else
 		{
+			//get current time
+			LocalTime local_time = LocalTime.now();
+			//convert it to sql.time
+			Time current_time = Time.valueOf(local_time);
+			acc.setVerifiedCreateDate(current_time);
 			String randomCode = RandomString.make(64);
 			acc.setVerifiedCode(randomCode);
 			
@@ -198,8 +237,12 @@ public class accountController {
 		}
 	
 	//protect account
-		@RequestMapping(value = mapping.ACCOUNT_PROTECT, method = RequestMethod.POST,consumes = { "application/json" })
-		public @ResponseBody account protect(@RequestBody int account_id,int protect_id) {
+		@RequestMapping(value = mapping.ACCOUNT_PROTECT, method = RequestMethod.POST)
+		public @ResponseBody account protect(@RequestBody String account, String protect) {
+			
+			//convert string to int
+			int account_id = Integer.valueOf(account);
+			int protect_id = Integer.valueOf(protect);
 			account acc = new account();
 			//find protect time
 			protect_time p =protect_times.findById(protect_id);
@@ -221,8 +264,14 @@ public class accountController {
 				}
 				else
 				{
+					//get current date
+					LocalDate local_date = LocalDate.now();
+					//convert it into sql.date
+					Date current_date = Date.valueOf(local_date);
+					a.setProtectTimeStart(current_date);					
 					a.setProctectTimeId(p.getId());
-					a.setProtect_time(p);
+					//set status = false 
+					a.setStatus(false);
 					return accounts.save(a);
 				}
 			}
@@ -252,9 +301,79 @@ public class accountController {
         helper.setText(content, true);
         //send email
         emailSender.send(message);
-	    
-	    
-	     
+	    	  	     
+	}
+	
+	//login
+	@RequestMapping(value = mapping.ACCOUNT_LOGIN, method=RequestMethod.POST, consumes = {"application/json"})
+	private @ResponseBody account login(@RequestBody account acc)
+	{
+		account a = new account();
+		//check if username exist
+		if(accounts.existsByUsername(acc.getUsername()))
+		{
+			// find account
+			a = accounts.findByUsername(acc.getUsername());
+			//check if account is verified
+			if(a.isVerified())
+			{
+				//check if status = true, false = banned or protect
+				if(a.isStatus())
+				{
+					//hash password to compare
+					int strength = 10; // work factor of bcrypt
+					BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(strength, new SecureRandom());
+					//check if password is equal
+					if(bCryptPasswordEncoder.matches(acc.getPassword(), a.getPassword())) {
+						//if true return a
+						return a;
+					}
+					else
+					{
+						//return with password = 0
+						a.setPassword("0");
+						return a;
+					}
+				}
+				else
+				{
+					//if status = false and protect = 1 acccount is banned, return with status = 0 and banned_reason
+					//if status = false = protect != 1 account is protected, return protect_time_id = time left
+					if(a.getProctectTimeId() != 1)
+					{
+						//convert sql.date to LocalDate
+						LocalDate start_date = a.getProtectTimeStart().toLocalDate();
+						//get day protect
+						long day = a.getProtect_time().getValue();
+						//get finish date
+						start_date = start_date.plusDays(day);											
+						//get current date
+						LocalDate current_date = LocalDate.now();
+						//get date left
+						long date_left = ChronoUnit.DAYS.between( current_date , start_date );
+						//set protect_time_id = time left
+						a.setProctectTimeId((int) date_left);
+						return a;
+						
+					}
+					return a;
+				}
+			}
+			else
+				//if account is not verified, return with verified = false
+			{
+				return a;
+			}
+			
+		
+		}
+		else
+		{
+			//if not find account return with username =0
+			a.setUsername("0");
+			return a;
+			
+		}
 	}
 
 }

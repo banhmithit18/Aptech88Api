@@ -9,9 +9,18 @@ public final class mapping {
 	public static final String ACCOUNT_VERIFY ="/AccountVerify";
 	public static final String ACCOUNT_SEND_VERIFY ="/SendVerify";
 	public static final String ACCOUNT_PROTECT ="/AccountProtect";
+	public static final String ACCOUNT_GET ="/AccountGet";
+	public static final String ACCOUNT_LOGIN ="/AccountLogin";
+	public static final String ACCOUNT_MAXIUMUM_DEPOSIT ="/AccountDeposit";
 	
 	//protect_time
 	public static final String PROTECT_TIME_CREATE ="/ProtectCreate";
 	public static final String PROTECT_TIME_EDIT = "/ProtectEdit";
 	public static final String PROTECT_TIME_DELETE ="/ProtectDelete";
+	public static final String PROTECT_TIME_GET ="/ProtectGet";
+	
+	//payment
+	public static final String PAYMENT_CREATE ="/PaymentCreate";
+	public static final String PAYMENT_GET= "/PaymentGet";
+	
 }

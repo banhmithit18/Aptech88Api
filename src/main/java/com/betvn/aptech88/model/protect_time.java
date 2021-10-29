@@ -5,10 +5,13 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Id;
 
@@ -25,7 +28,8 @@ public class protect_time {
 	@Column(name = "value")
 	private int value;
 
-	@OneToMany(mappedBy = "protect_time")
+	@OneToMany(mappedBy = "protect_time",fetch = FetchType.LAZY)
+	@JsonIgnore
 	private List<account> account;
 
 	public int getId() {

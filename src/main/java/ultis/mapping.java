@@ -12,6 +12,8 @@ public final class mapping {
 	public static final String ACCOUNT_GET ="/AccountGet";
 	public static final String ACCOUNT_LOGIN ="/AccountLogin";
 	public static final String ACCOUNT_MAXIUMUM_DEPOSIT ="/AccountDeposit";
+	public static final String ACCOUNT_FIND ="/AccountFind";
+	public static final String ACCOUNT_PASSWORD_CHANGE = "/AccountPassword";
 	
 	//protect_time
 	public static final String PROTECT_TIME_CREATE ="/ProtectCreate";

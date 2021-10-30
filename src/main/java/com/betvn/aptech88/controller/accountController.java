@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.betvn.aptech88.model.Ban;
+import com.betvn.aptech88.model.ChangePassword;
 import com.betvn.aptech88.model.account;
 import com.betvn.aptech88.model.protect_time;
 import com.betvn.aptech88.model.wallet;
@@ -57,6 +58,24 @@ public class accountController {
 	{
 		List<account> account_list = accounts.findAll();
 		return account_list;
+	}
+	
+	//find account by id
+	@RequestMapping(value = mapping.ACCOUNT_FIND, method = RequestMethod.POST, consumes = {"application/json"})
+	public @ResponseBody account find(@RequestBody int id)
+	{
+		//find account
+		account c = accounts.findById(id);
+		//check if found account
+		if( c != null)
+		{
+			//return found account
+			return c;
+		}
+		else {
+			//if not found account return with id = 0
+			return c;
+		}
 	}
     // create account
 	@RequestMapping(value = mapping.ACCOUNT_CREATE, method = RequestMethod.POST, consumes = { "application/json" })
@@ -136,17 +155,76 @@ public class accountController {
 		}
 	}
 	
-	// maximum deposit, only required id and maximum_deposit value
+	//change password
+	//input json = {"id":"account_id","new_password":"new password","old_password":"old password"}	
+	@RequestMapping (value = mapping.ACCOUNT_PASSWORD_CHANGE, method = RequestMethod.POST, consumes= {"application/json"})
+	public @ResponseBody account changePassword(@RequestBody ChangePassword cp)
+	{
+		//found account
+		account c = accounts.findById(cp.getId());
+		//check if account is found
+		if(c!= null)
+		{
+			
+			int strength = 10;
+			BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder(strength, new SecureRandom());
+			//check if old pass is match
+			if (bcrypt.matches(cp.getOld_password(), c.getPassword()))
+			{
+				//if match hash new pass and return account with hashed pass
+				String encodedPassword = bcrypt.encode(cp.getNew_password());
+				c.setPassword(encodedPassword);
+				return accounts.save(c);
+			}
+			else
+			{
+				//if old pass not match return account with pass = 0
+				c.setPassword("0");
+				return c;
+			}
+		}
+		else {
+			//if account not found return account with id = 0
+			return c;
+		}
+		
+	}
+	
+	//edit account
+	@RequestMapping ( value = mapping.ACCOUNT_EDIT, method = RequestMethod.POST, consumes = {"application/json"})
+	public @ResponseBody account edit(@RequestBody account c)
+	{
+		account acc = accounts.findById(c.getId());
+		
+		//check if account found
+		if(acc != null)
+		{
+			acc.setAddress(c.getAddress());
+			acc.setProvince(c.getProvince());
+			acc.setName(c.getName());
+			acc.setAge(c.getAge());
+			acc.setPhonenumber(c.getPhonenumber());
+			return accounts.save(acc);
+			
+		}
+		else
+		{
+			//if not found return account with id = 0
+			return acc;
+		}
+	}
+	
+	// maximum deposit, only required id and maximum_deposit value, maximum_deposit = 0 mean no limit
 	@RequestMapping(value = mapping.ACCOUNT_MAXIUMUM_DEPOSIT, method = RequestMethod.POST, consumes = {"application/json"})
 	public @ResponseBody account maximum(@RequestBody account acc)
 	{
 		//find account
-		acc =accounts.findById(acc.getId());
+		account c =accounts.findById(acc.getId());
 		if(accounts != null)
 		{
-			//return account
-			acc.setMaximumDeposit(acc.getMaximumDeposit());
-			return accounts.save(acc);
+			//return account if save sucess
+			c.setMaximumDeposit(acc.getMaximumDeposit());
+			return accounts.save(c);
 		}
 		
 		else

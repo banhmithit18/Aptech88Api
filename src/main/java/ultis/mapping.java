@@ -15,14 +15,22 @@ public final class mapping {
 	public static final String ACCOUNT_FIND ="/AccountFind";
 	public static final String ACCOUNT_PASSWORD_CHANGE = "/AccountPassword";
 	
+	//paymanet
+	public static final String PAYMENT_CREATE ="/PaymentCreate";
+	public static final String PAYMENT_GET  = "/PaymentGet";
+	public static final String PAYMENT_FIND = "/PaymentFind";
 	//protect_time
 	public static final String PROTECT_TIME_CREATE ="/ProtectCreate";
 	public static final String PROTECT_TIME_EDIT = "/ProtectEdit";
 	public static final String PROTECT_TIME_DELETE ="/ProtectDelete";
 	public static final String PROTECT_TIME_GET ="/ProtectGet";
 	
-	//payment
-	public static final String PAYMENT_CREATE ="/PaymentCreate";
-	public static final String PAYMENT_GET= "/PaymentGet";
+	//promotion
+	public static final String PROMOTION_GET ="/PromotionGet";
+	public static final String PROMOTION_CREATE ="/PromotionCreate";
+	public static final String PROMOTION_EDIT = "/PromotionEdit";
+	public static final String PROMOTION_DELETE = "/PromotionDelete";
 	
+	//wallet
+	public static final String WALLET_GET ="/WalletGet";
 }

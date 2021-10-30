@@ -19,6 +19,10 @@ public class promotion {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
+	@Column(name = "name")
+	private String name;
+	
+	
 	@Column(name = "value")
 	private double value;
 	
@@ -68,6 +72,17 @@ public class promotion {
 	public void setPayment(List<payment> payment) {
 		this.payment = payment;
 	}
+
+
+	public String getName() {
+		return name;
+	}
+
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	
 	
 }

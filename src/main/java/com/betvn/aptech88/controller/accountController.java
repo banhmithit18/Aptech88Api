@@ -120,12 +120,7 @@ public class accountController {
 				// if save successfully , save account
 				acc = accounts.save(c);
 				//send verification email
-				sendVerificationEmail(acc);
-				// create wallet
-				wallet w = new wallet();
-				w.setAccount(acc);
-				w.setAccountId(acc.getId());
-				wallets.save(w);
+				sendVerificationEmail(acc);				
 				// return account
 				return acc;
 
@@ -150,6 +145,12 @@ public class accountController {
 			acc.setVerified(true);
 			acc.setVerifiedCode(null);
 			acc.setVerifiedCreateDate(null);
+			//create wallet if verified
+			// create wallet
+			wallet w = new wallet();
+			w.setAccount(acc);
+			w.setAccountId(acc.getId());
+			wallets.save(w);
 			accounts.save(acc);
 			return true;
 		}

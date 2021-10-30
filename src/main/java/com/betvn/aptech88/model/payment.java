@@ -1,5 +1,7 @@
 package com.betvn.aptech88.model;
 
+import java.sql.Timestamp;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -51,6 +53,10 @@ public class payment
 	
 	@Column(name = "to_bank_name")
 	private String toBankName;
+	
+	@Column(name = "payment_date")
+	private Timestamp paymentDate;
+	
 	
 	
 	@JsonIgnore
@@ -184,6 +190,16 @@ public class payment
 
 	public void setPromotion(promotion promotion) {
 		this.promotion = promotion;
+	}
+
+
+	public Timestamp getPaymentDate() {
+		return paymentDate;
+	}
+
+
+	public void setPaymentDate(Timestamp paymentDate) {
+		this.paymentDate = paymentDate;
 	}
 	
 	

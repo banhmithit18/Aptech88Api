@@ -8,5 +8,6 @@ import com.betvn.aptech88.model.promotion;
 
 @Repository
 public interface promotionRepository extends JpaRepository<promotion, Integer> {
+	promotion findById(int id);
 	
 }

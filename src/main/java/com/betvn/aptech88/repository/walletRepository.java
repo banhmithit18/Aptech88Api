@@ -8,5 +8,7 @@ import com.betvn.aptech88.model.wallet;
 
 @Repository
 public interface walletRepository extends JpaRepository<wallet, Integer> {
-	
+	wallet findById(int id);
+	wallet findByAccountId( int accountId);
+
 }

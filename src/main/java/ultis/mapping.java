@@ -33,4 +33,10 @@ public final class mapping {
 	
 	//wallet
 	public static final String WALLET_GET ="/WalletGet";
+	
+	//leaug
+	public static final String LEAUGE_GET ="/LeaugeGet";
+	public static final String LEAUGE_CREATE = "/LeaugeCreate";
+	public static final String LEAGUE_EDIT ="/LeaugeEdit";
+	public static final String LEAUGE_DELETE ="/LeaugeDelete";
 }

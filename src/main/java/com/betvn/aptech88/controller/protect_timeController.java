@@ -3,78 +3,77 @@ package com.betvn.aptech88.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.betvn.aptech88.model.protect_time;
 import com.betvn.aptech88.repository.protect_timeRepository;
 
 import ultis.mapping;
 
-@Controller
+@RestController
 public class protect_timeController {
 	@Autowired protect_timeRepository protect_times;
 	
 	//get all protect_time
 	@RequestMapping(value= mapping.PROTECT_TIME_GET)
-	public @ResponseBody List<protect_time> get(){
+	public  List<protect_time> get(){
 		List<protect_time> list_protect = protect_times.findAllByIdNot(1);
 		return list_protect;
 	}
 	
 	//create protect_time
 	@RequestMapping(value = mapping.PROTECT_TIME_CREATE, method = RequestMethod.POST, consumes = {"application/json"})
-	public @ResponseBody protect_time create(@RequestBody protect_time p)
+	public ResponseEntity<?> create(@RequestBody protect_time p)
 	{
-		protect_time pro = new protect_time();
+	
 		//check if name is already exists
 		if(!protect_times.existsByName(p.getName()))
 		{
 			try {
 				//if save sucessfully return save
-				return protect_times.save(p);
+				return new ResponseEntity<protect_time>( protect_times.save(p),HttpStatus.CREATED);
 				
 			}catch( Exception ex)
 			{
-				//if create false return with id = 0 
-				pro.setId(0);
-				return pro;
+				//if create false
+				return ResponseEntity.status(400).body("Error! Please try again later");		
 			}
 		}
 		else
 		{
-			//if exists return with name = 0
-			pro.setName("0");
-			return pro;
+			//if exists return
+			return ResponseEntity.status(404).body("Protect name already exists");		
 			
 		}
 	}
 	
 	//edit protect_time
 	@RequestMapping(value = mapping.PROTECT_TIME_EDIT, method = RequestMethod.POST, consumes = {"application/json"})
-	public @ResponseBody protect_time edit(@RequestBody protect_time p)
+	public ResponseEntity<?> edit(@RequestBody protect_time p)
 	{
 		//find protect_time
 		protect_time edit = protect_times.findById(p.getId());
 		//check if name is same
 		if((edit.getName()).equals(p.getName())) {
 			//return if save sucess;
-			return protect_times.save(p);
+			return new ResponseEntity<protect_time>(protect_times.save(p),HttpStatus.CREATED);
 		}
 		else
 		{
 			//check if name is exists
 			if(!protect_times.existsByName(p.getName())) {
-				return protect_times.save(p);
+				return new ResponseEntity<protect_time>(protect_times.save(p),HttpStatus.CREATED);
 			}
 			else
 			{
 				//if name is taken return with name = 0
-				p.setName("0");
-				return p;
+				return ResponseEntity.status(304).body("Protect name is taken");
 			}
 		}
 	}

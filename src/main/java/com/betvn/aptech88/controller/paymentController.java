@@ -5,11 +5,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+
+import org.springframework.web.bind.annotation.RestController;
 
 import com.betvn.aptech88.model.payment;
 import com.betvn.aptech88.model.promotion;
@@ -20,7 +23,7 @@ import com.betvn.aptech88.repository.walletRepository;
 
 import ultis.mapping;
 
-@Controller
+@RestController
 public class paymentController {
 	@Autowired
 	paymentRepository payments;
@@ -34,7 +37,7 @@ public class paymentController {
 	// cal api payment first then import to database
 	// paymentType = "deposit" ,"withdraw" must have paymentType
 	@RequestMapping(value = mapping.PAYMENT_CREATE, method = RequestMethod.POST, consumes = { "application/json" })
-	public @ResponseBody payment create(@RequestBody payment p) {
+	public ResponseEntity <?> create(@RequestBody payment p) {
 		//find wallet
 		wallet w = wallets.findById(p.getWalletId());
 		// check if wallet is found
@@ -62,15 +65,13 @@ public class paymentController {
 				if (amount_left > 0) {
 					w.setAmount(amount_left);
 				} else {
-					// if not enough return paymnent with amount = 0
-					p.setAmount(0);
-					return p;
+					// if not enough return
+					return ResponseEntity.status(404).body("insufficient balance");		
+
 				}
 			} else {
-				// if not found type return payment with paymentType = not found
-				p.setPaymentType("not found type");
-				return p;
-
+				// if not found type return 
+				return ResponseEntity.status(404).body("type not found");		
 			}
 
 			try {
@@ -82,23 +83,22 @@ public class paymentController {
 				//convert to sql timestamp
 				Timestamp sqlDate = Timestamp.valueOf(date);
 				p.setPaymentDate(sqlDate);
-				return payments.save(p);
+				return new ResponseEntity<payment>(payments.save(p),HttpStatus.CREATED);
 
 			} catch (Exception ex) {
-				// if cannot save wallet return payment with status = 0
-				return p;
+				// if cannot save wallet 
+				return ResponseEntity.status(304).body("Error! Try again later");		
 			}
 
 		} else {
-			// if not found wallet return with wallet id = 0
-			p.setWalletId(0);
-			return p;
+			// if not found wallet
+			return ResponseEntity.status(404).body("Wallet not found");		
 		}
 	}
 
 	// find payment by wallet id
 	@RequestMapping(value = mapping.PAYMENT_FIND, method = RequestMethod.POST, consumes = { "application/json" })
-	public @ResponseBody List<payment> find(@RequestBody int id) {
+	public List<payment> find(@RequestBody int id) {
 		List<payment> payment_list = payments.findAllByWalletId(id);
 		return payment_list;
 	}
@@ -106,7 +106,7 @@ public class paymentController {
 	
 	// get all payment
 	@RequestMapping( value = mapping.PAYMENT_GET)
-	public @ResponseBody List<payment> get() {
+	public List<payment> get() {
 		List<payment> payment_list = payments.findAll();
 		return payment_list;
 	}

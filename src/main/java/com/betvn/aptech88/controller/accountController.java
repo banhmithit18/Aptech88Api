@@ -12,17 +12,17 @@ import java.util.List;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.betvn.aptech88.model.Ban;
@@ -38,64 +38,57 @@ import net.bytebuddy.utility.RandomString;
 import ultis.emailContent;
 import ultis.mapping;
 
-@Controller
+@RestController
 public class accountController {
 	@Autowired
 	accountRepository accounts;
-	
+
 	@Autowired
 	walletRepository wallets;
-	
+
 	@Autowired
 	protect_timeRepository protect_times;
-	
+
 	@Autowired
 	JavaMailSender emailSender;
-	
-	//get account
+
+	// get account
 	@RequestMapping(value = mapping.ACCOUNT_GET)
-	public @ResponseBody List<account> get()
-	{
+	public List<account> get() {
 		List<account> account_list = accounts.findAll();
 		return account_list;
 	}
-	
-	//find account by id
-	@RequestMapping(value = mapping.ACCOUNT_FIND, method = RequestMethod.POST, consumes = {"application/json"})
-	public @ResponseBody account find(@RequestBody int id)
-	{
-		//find account
+
+	// find account by id
+	@RequestMapping(value = mapping.ACCOUNT_FIND, method = RequestMethod.POST, consumes = { "application/json" })
+	public ResponseEntity<?> find(@RequestBody int id) {
+		// find account
 		account c = accounts.findById(id);
-		//check if found account
-		if( c != null)
-		{
-			//return found account
-			return c;
-		}
-		else {
-			//if not found account return with id = 0
-			return c;
+		// check if found account
+		if (c != null) {
+			// return found account
+			return new ResponseEntity<>(c, HttpStatus.CREATED);
+		} else {
+			return ResponseEntity.status(404).body("Account not found");
 		}
 	}
-    // create account
+
+	// create account
 	@RequestMapping(value = mapping.ACCOUNT_CREATE, method = RequestMethod.POST, consumes = { "application/json" })
-	public @ResponseBody account create(@RequestBody account c) {
+	public ResponseEntity<?> create(@RequestBody account c) {
 		account acc = new account();
-		// check if email is taken, if true return account with email = 0
+		// check if email is taken
 		if (accounts.existsByEmail(c.getEmail())) {
-			acc.setEmail("0");
-			return acc;
+			return ResponseEntity.status(409).body("Email is taken");
 		}
-		// check if phone number is taken, if true return account with number = 0
+		// check if phone number is taken
 		else if (accounts.existsByPhonenumber(c.getPhonenumber())) {
-			acc.setPhonenumber("0");
-			return acc;
+			return ResponseEntity.status(409).body("Phone is taken");
 
 		}
-		// check if username is taken, if true return account with username = 0
+		// check if username is taken
 		else if (accounts.existsByUsername(c.getUsername())) {
-			acc.setUsername("0");
-			return acc;
+			return ResponseEntity.status(409).body("Username is taken");
 		} else {
 			try {
 				// set status true for account, false = banned
@@ -112,346 +105,306 @@ public class accountController {
 				String randomCode = RandomString.make(64);
 				c.setVerifiedCode(randomCode);
 				// set created time for verification code
-				//get current time
+				// get current time
 				LocalTime local_time = LocalTime.now();
-				//convert it to sql.time
+				// convert it to sql.time
 				Time current_time = Time.valueOf(local_time);
 				c.setVerifiedCreateDate(current_time);
 				// if save successfully , save account
 				acc = accounts.save(c);
-				//send verification email
-				sendVerificationEmail(acc);				
+				// send verification email
+				sendVerificationEmail(acc);
 				// return account
-				return acc;
+				return new ResponseEntity<account>(acc, HttpStatus.CREATED);
 
 			} catch (Exception ex) {
-				// if account not created return with id = 0
-				acc.setId(0);
-				return acc;
+				// if account not created
+				return ResponseEntity.status(409).body("Account cannot be create");
 			}
 		}
 	}
 
 	// verifiy account
 	@RequestMapping(value = mapping.ACCOUNT_VERIFY)
-	public @ResponseBody Boolean verify(@RequestParam(name = "code") String code) {
-		//find account by verified code
+	public String verify(@RequestParam(name = "code") String code) {
+		// find account by verified code
 		account acc = accounts.findByVerifiedCode(code);
-		//if not found return fail
+		// if not found return fail
 		if (acc == null || acc.isVerified()) {
-			return false;
+			return "Cannot verifiy please try again";
 		} else {
-			//if found, set verified = true and return success
+			// if found, set verified = true and return success
 			acc.setVerified(true);
 			acc.setVerifiedCode(null);
 			acc.setVerifiedCreateDate(null);
-			//create wallet if verified
+			// create wallet if verified
 			// create wallet
 			wallet w = new wallet();
 			w.setAccount(acc);
 			w.setAccountId(acc.getId());
 			wallets.save(w);
 			accounts.save(acc);
-			return true;
+			return "Verified";
 		}
 	}
-	
-	//change password
-	//input json = {"id":"account_id","new_password":"new password","old_password":"old password"}	
-	@RequestMapping (value = mapping.ACCOUNT_PASSWORD_CHANGE, method = RequestMethod.POST, consumes= {"application/json"})
-	public @ResponseBody account changePassword(@RequestBody ChangePassword cp)
-	{
-		//found account
+
+	// change password
+	// input json = {"id":"account_id","new_password":"new
+	// password","old_password":"old password"}
+	@RequestMapping(value = mapping.ACCOUNT_PASSWORD_CHANGE, method = RequestMethod.POST, consumes = {
+			"application/json" })
+	public ResponseEntity<?> changePassword(@RequestBody ChangePassword cp) {
+		// found account
 		account c = accounts.findById(cp.getId());
-		//check if account is found
-		if(c!= null)
-		{
-			
+		// check if account is found
+		if (c != null) {
+
 			int strength = 10;
 			BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder(strength, new SecureRandom());
-			//check if old pass is match
-			if (bcrypt.matches(cp.getOld_password(), c.getPassword()))
-			{
-				//if match hash new pass and return account with hashed pass
+			// check if old pass is match
+			if (bcrypt.matches(cp.getOld_password(), c.getPassword())) {
+				// if match hash new pass and return account with hashed pass
 				String encodedPassword = bcrypt.encode(cp.getNew_password());
 				c.setPassword(encodedPassword);
-				return accounts.save(c);
+				return new ResponseEntity<account>(accounts.save(c), HttpStatus.CREATED);
+			} else {
+				// if old pass not match
+				return ResponseEntity.status(406).body("Password not match");
 			}
-			else
-			{
-				//if old pass not match return account with pass = 0
-				c.setPassword("0");
-				return c;
-			}
+		} else {
+			// if account not found
+			return ResponseEntity.status(404).body("Account not found");
+
 		}
-		else {
-			//if account not found return account with id = 0
-			return c;
-		}
-		
+
 	}
-	
-	//edit account
-	@RequestMapping ( value = mapping.ACCOUNT_EDIT, method = RequestMethod.POST, consumes = {"application/json"})
-	public @ResponseBody account edit(@RequestBody account c)
-	{
+
+	// edit account
+	@RequestMapping(value = mapping.ACCOUNT_EDIT, method = RequestMethod.POST, consumes = { "application/json" })
+	public ResponseEntity<?> edit(@RequestBody account c) {
 		account acc = accounts.findById(c.getId());
-		
-		//check if account found
-		if(acc != null)
-		{
+
+		// check if account found
+		if (acc != null) {
 			acc.setAddress(c.getAddress());
 			acc.setProvince(c.getProvince());
 			acc.setName(c.getName());
 			acc.setAge(c.getAge());
 			acc.setPhonenumber(c.getPhonenumber());
-			return accounts.save(acc);
-			
-		}
-		else
-		{
-			//if not found return account with id = 0
-			return acc;
+			c = accounts.save(acc);
+			return new ResponseEntity<account>(c, HttpStatus.CREATED);
+
+		} else {
+			// if not found
+			return ResponseEntity.status(404).body("Account not found");
 		}
 	}
-	
-	// maximum deposit, only required id and maximum_deposit value, maximum_deposit = 0 mean no limit
-	@RequestMapping(value = mapping.ACCOUNT_MAXIUMUM_DEPOSIT, method = RequestMethod.POST, consumes = {"application/json"})
-	public @ResponseBody account maximum(@RequestBody account acc)
-	{
-		//find account
-		account c =accounts.findById(acc.getId());
-		if(accounts != null)
-		{
-			//return account if save sucess
+
+	// maximum deposit, only required id and maximum_deposit value, maximum_deposit
+	// = 0 mean no limit
+	@RequestMapping(value = mapping.ACCOUNT_MAXIUMUM_DEPOSIT, method = RequestMethod.POST, consumes = {
+			"application/json" })
+	public ResponseEntity<?> maximum(@RequestBody account acc) {
+		// find account
+		account c = accounts.findById(acc.getId());
+		if (accounts != null) {
+			// return account if save sucess
 			c.setMaximumDeposit(acc.getMaximumDeposit());
-			return accounts.save(c);
+			acc = accounts.save(c);
+			return new ResponseEntity<account>(c, HttpStatus.CREATED);
 		}
-		
-		else
-		{
-			//return with id = 0 if not found account
-			acc.setId(0);
-			return acc;
+
+		else {
+			// check if not found account
+			return ResponseEntity.status(404).body("Account not found");
 		}
 	}
-	
-	//send verified
-	@RequestMapping(value = mapping.ACCOUNT_SEND_VERIFY, method = RequestMethod.POST,consumes = { "application/json" })
-	public @ResponseBody Boolean sendVerify(@RequestBody int id)
-	{
-		//find account
+
+	// send verified
+	@RequestMapping(value = mapping.ACCOUNT_SEND_VERIFY, method = RequestMethod.POST, consumes = { "application/json" })
+	public Boolean sendVerify(@RequestBody int id) {
+		// find account
 		account acc = accounts.findById(id);
-		//check if not found 
-		if(acc == null || acc.isVerified())
-		{
+		// check if not found
+		if (acc == null || acc.isVerified()) {
 			return false;
-		}
-		else
-		{
-			//get current time
+		} else {
+			// get current time
 			LocalTime local_time = LocalTime.now();
-			//convert it to sql.time
+			// convert it to sql.time
 			Time current_time = Time.valueOf(local_time);
 			acc.setVerifiedCreateDate(current_time);
 			String randomCode = RandomString.make(64);
 			acc.setVerifiedCode(randomCode);
-			
+
 			try {
 				accounts.save(acc);
-				//if save sucess send verification email
+				// if save sucess send verification email
 				sendVerificationEmail(acc);
-			}catch(Exception ex)
-			{
+			} catch (Exception ex) {
 				return false;
 			}
 			return true;
 		}
 	}
-	
+
 	// ban account
-		@RequestMapping(value = mapping.ACCOUNT_BAN, method = RequestMethod.POST,consumes = { "application/json" })
-		public @ResponseBody account ban(@RequestBody Ban ban) {
-			//find account if not exists return account with id = 0
-			account acc = new account();
-			try {			
-				acc =accounts.findById(ban.getId());
-				acc.setStatus(false);
-				acc.setBannedReason(ban.getReason());
-				//return acc if sucess
-				return accounts.save(acc);
-			} catch (Exception ex)
-			{
-				acc.setId(0);
-				return acc;
-			}
+	@RequestMapping(value = mapping.ACCOUNT_BAN, method = RequestMethod.POST, consumes = { "application/json" })
+	public ResponseEntity<?> ban(@RequestBody Ban ban) {
+		account acc = new account();
+		try {
+			acc = accounts.findById(ban.getId());
+			acc.setStatus(false);
+			acc.setBannedReason(ban.getReason());
+			// return acc if sucess
+			return new ResponseEntity<account>(accounts.save(acc), HttpStatus.CREATED);
+		} catch (Exception ex) {
+			return ResponseEntity.status(404).body("Account not found");
+
 		}
-	//unban
-		@RequestMapping(value = mapping.ACCOUNT_UNBAN, method = RequestMethod.POST,consumes = { "application/json" })
-		public @ResponseBody account ban(@RequestBody int id) {
-			//find account if not exists return account with id = 0
-			account acc = new account();
-			try {			
-				acc =accounts.findById(id);
-				if(!acc.isStatus())
-				{
-					acc.setStatus(true);
-					acc.setBannedReason(null);
-					return accounts.save(acc);
-				}
-				else
-				{
-					//if account no ban return with id =0 , status = 0
-					acc.setId(0);
-					acc.setStatus(false);
-					return acc;
-					
-				}
-				
-			} catch (Exception ex)
-			{
-				acc.setId(0);
-				return acc;
-			}
-		}
-	
-	//protect account
-		@RequestMapping(value = mapping.ACCOUNT_PROTECT, method = RequestMethod.POST)
-		public @ResponseBody account protect(@RequestBody String account, String protect) {
-			
-			//convert string to int
-			int account_id = Integer.valueOf(account);
-			int protect_id = Integer.valueOf(protect);
-			account acc = new account();
-			//find protect time
-			protect_time p =protect_times.findById(protect_id);
-			if(p == null || p.getId() == 1)
-			{
-				//if null or id = 1(no protect) return protect = 0
-				acc.setProctectTimeId(0);
-				return acc;
-			}
-			else
-			{
-				//find account
-				account a = accounts.findById(account_id);
-				if(a == null)
-				{
-					//if null return id = 0
-					acc.setId(0);
-					return acc;
-				}
-				else
-				{
-					//get current date
-					LocalDate local_date = LocalDate.now();
-					//convert it into sql.date
-					Date current_date = Date.valueOf(local_date);
-					a.setProtectTimeStart(current_date);					
-					a.setProctectTimeId(p.getId());
-					//set status = false 
-					a.setStatus(false);
-					return accounts.save(a);
-				}
-			}
-		}
-		
-	//send verification email
-	private void sendVerificationEmail(account acc)
-	        throws MessagingException, UnsupportedEncodingException {
-		//get email content 
-	    String content =  emailContent.EMAIL_CONTENT;
-	    //replace name = username 
-	    content = content.replace("[[name]]", acc.getUsername());
-	    //get current request url
-	    String current_request = ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString();
-	    //get url by remove last occurrence
-	    String url = current_request.substring(0, current_request.lastIndexOf("/"));
-	    //generate verification url
-	    String verifyURL =  url+"/AccountVerify?code=" + acc.getVerifiedCode();
-	    //replae url = verifyURL;
-	    content = content.replace("[[URL]]", verifyURL);
-        MimeMessage message = emailSender.createMimeMessage();
-        message.setSubject("Verify your registration");
-        MimeMessageHelper helper;
-        helper = new MimeMessageHelper(message, true);
-        helper.setFrom("Aptech88");
-        helper.setTo(acc.getEmail());
-        helper.setText(content, true);
-        //send email
-        emailSender.send(message);
-	    	  	     
 	}
+
+	// unban
+	@RequestMapping(value = mapping.ACCOUNT_UNBAN, method = RequestMethod.POST, consumes = { "application/json" })
+	public ResponseEntity<?> ban(@RequestBody int id) {
+		// find account if not exists return account with id = 0
+		account acc = new account();
+		try {
+			acc = accounts.findById(id);
+			if (!acc.isStatus()) {
+				acc.setStatus(true);
+				acc.setBannedReason(null);
+				return new ResponseEntity<account>(accounts.save(acc), HttpStatus.CREATED);
+			} else {
+				// if account no ban return response
+				return ResponseEntity.status(304).body("Cannot unabn due to error");
+
+			}
+
+		} catch (Exception ex) {
+			return ResponseEntity.status(404).body("Account not found");
+		}
+	}
+
+	// protect account
+	@RequestMapping(value = mapping.ACCOUNT_PROTECT, method = RequestMethod.POST)
+	public ResponseEntity<?> protect(@RequestBody String account, String protect) {
+
+		// convert string to int
+		int account_id = Integer.valueOf(account);
+		int protect_id = Integer.valueOf(protect);
 	
-	//login
-	@RequestMapping(value = mapping.ACCOUNT_LOGIN, method=RequestMethod.POST, consumes = {"application/json"})
-	private @ResponseBody account login(@RequestBody account acc)
-	{
+		// find protect time
+		protect_time p = protect_times.findById(protect_id);
+		if (p == null || p.getId() == 1) {
+			// if null or id = 1(no protect) return response
+			return ResponseEntity.status(404).body("Protect = 1 or not found");
+
+		} else {
+			// find account
+			account a = accounts.findById(account_id);
+			if (a == null) {
+				// if null return
+				return ResponseEntity.status(404).body("Account not found");
+			} else {
+				// get current date
+				LocalDate local_date = LocalDate.now();
+				// convert it into sql.date
+				Date current_date = Date.valueOf(local_date);
+				a.setProtectTimeStart(current_date);
+				a.setProctectTimeId(p.getId());
+				// set status = false
+				a.setStatus(false);
+				return new ResponseEntity<account>(accounts.save(a), HttpStatus.CREATED);
+			}
+		}
+	}
+
+	// send verification email
+	private void sendVerificationEmail(account acc) throws MessagingException, UnsupportedEncodingException {
+		// get email content
+		String content = emailContent.EMAIL_CONTENT;
+		// replace name = username
+		content = content.replace("[[name]]", acc.getUsername());
+		// get current request url
+		String current_request = ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString();
+		// get url by remove last occurrence
+		String url = current_request.substring(0, current_request.lastIndexOf("/"));
+		// generate verification url
+		String verifyURL = url + "/AccountVerify?code=" + acc.getVerifiedCode();
+		// replae url = verifyURL;
+		content = content.replace("[[URL]]", verifyURL);
+		MimeMessage message = emailSender.createMimeMessage();
+		message.setSubject("Verify your registration");
+		MimeMessageHelper helper;
+		helper = new MimeMessageHelper(message, true);
+		helper.setFrom("Aptech88");
+		helper.setTo(acc.getEmail());
+		helper.setText(content, true);
+		// send email
+		emailSender.send(message);
+
+	}
+
+	// login
+	@RequestMapping(value = mapping.ACCOUNT_LOGIN, method = RequestMethod.POST, consumes = { "application/json" })
+	private  ResponseEntity<?> login(@RequestBody account acc) {
 		account a = new account();
-		//check if username exist
-		if(accounts.existsByUsername(acc.getUsername()))
-		{
+		// check if username exist
+		if (accounts.existsByUsername(acc.getUsername())) {
 			// find account
 			a = accounts.findByUsername(acc.getUsername());
-			//check if account is verified
-			if(a.isVerified())
-			{
-				//check if status = true, false = banned or protect
-				if(a.isStatus())
-				{
-					//hash password to compare
+			// check if account is verified
+			if (a.isVerified()) {
+				// check if status = true, false = banned or protect
+				if (a.isStatus()) {
+					// hash password to compare
 					int strength = 10; // work factor of bcrypt
-					BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(strength, new SecureRandom());
-					//check if password is equal
-					if(bCryptPasswordEncoder.matches(acc.getPassword(), a.getPassword())) {
-						//if true return a
-						return a;
+					BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(strength,
+							new SecureRandom());
+					// check if password is equal
+					if (bCryptPasswordEncoder.matches(acc.getPassword(), a.getPassword())) {
+						// if true return a
+						return new ResponseEntity<account>(a,HttpStatus.OK);
+					} else {
+						// return if password not match
+						return ResponseEntity.status(404).body("Password not match");		
+
 					}
-					else
-					{
-						//return with password = 0
-						a.setPassword("0");
-						return a;
-					}
-				}
-				else
-				{
-					//if status = false and protect = 1 acccount is banned, return with status = 0 and banned_reason
-					//if status = false = protect != 1 account is protected, return protect_time_id = time left
-					if(a.getProctectTimeId() != 1)
-					{
-						//convert sql.date to LocalDate
+				} else {
+					// if status = false and protect = 1 acccount is banned, return with status = 0
+					// and banned_reason
+					// if status = false = protect != 1 account is protected, return protect_time_id
+					// = time left
+					if (a.getProctectTimeId() != 1) {
+						// convert sql.date to LocalDate
 						LocalDate start_date = a.getProtectTimeStart().toLocalDate();
-						//get day protect
+						// get day protect
 						long day = a.getProtect_time().getValue();
-						//get finish date
-						start_date = start_date.plusDays(day);											
-						//get current date
+						// get finish date
+						start_date = start_date.plusDays(day);
+						// get current date
 						LocalDate current_date = LocalDate.now();
-						//get date left
-						long date_left = ChronoUnit.DAYS.between( current_date , start_date );
-						//set protect_time_id = time left
-						a.setProctectTimeId((int) date_left);
-						return a;
-						
+						// get date left
+						long date_left = ChronoUnit.DAYS.between(current_date, start_date);
+						return ResponseEntity.status(403).body("Account is locked, days left: "+date_left);		
+
+
 					}
-					return a;
+					return ResponseEntity.status(403).body("Account is banned, reason: "+a.getBannedReason());		
+
 				}
-			}
-			else
-				//if account is not verified, return with verified = false
+			} else
+			// if account is not verified
 			{
-				return a;
+				return ResponseEntity.status(401).body("Account not verified");		
 			}
-			
-		
-		}
-		else
-		{
-			//if not find account return with username =0
-			a.setUsername("0");
-			return a;
-			
+
+		} else {
+			// if not find account return with username =0
+			return ResponseEntity.status(404).body("Account not found");		
+
+
 		}
 	}
 

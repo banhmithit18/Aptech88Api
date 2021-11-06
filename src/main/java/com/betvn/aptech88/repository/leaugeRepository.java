@@ -8,5 +8,7 @@ import com.betvn.aptech88.model.leauge;
 
 @Repository
 public interface leaugeRepository extends JpaRepository<leauge, Integer> {
+	Boolean existsByName ( String name);
+	leauge findById(int id);
 	
 }

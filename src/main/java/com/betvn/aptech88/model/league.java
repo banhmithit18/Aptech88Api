@@ -19,6 +19,9 @@ public class league {
 	@Column(name = "name")
 	private String name;
 	
+	@Column(name = "logo")
+	private String logo;
+	
 	@Column(name = "status")
 	private boolean status;
 	
@@ -64,6 +67,17 @@ public class league {
 	public void setStatus(boolean status) {
 		this.status = status;
 	}
+
+
+	public String getLogo() {
+		return logo;
+	}
+
+
+	public void setLogo(String logo) {
+		this.logo = logo;
+	}
+	
 	
 	
 }

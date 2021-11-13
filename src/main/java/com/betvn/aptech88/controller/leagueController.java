@@ -136,9 +136,12 @@ public class leagueController {
 					league l = new league();
 					// get league name
 					String league_name = arr.getJSONObject(i).getJSONObject("league").getString("name");
+					//get logo
+					String logo = arr.getJSONObject(i).getJSONObject("league").getString("logo");
 					// set value
 					l.setId(league_id);
 					l.setName(league_name);
+					l.setLogo(logo);
 					l.setStatus(true);
 					// save to database
 					leauges.save(l);

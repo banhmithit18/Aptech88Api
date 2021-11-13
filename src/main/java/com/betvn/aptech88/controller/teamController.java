@@ -141,7 +141,10 @@ public class teamController {
 						team t = new team();
 						// get league name
 						String team_name = arr.getJSONObject(i).getJSONObject("team").getString("name");
+						//get logo
+						String logo =  arr.getJSONObject(i).getJSONObject("team").getString("logo");
 						// set value
+						t.setLogo(logo);
 						t.setId(team_id);
 						t.setName(team_name);
 						// save to database

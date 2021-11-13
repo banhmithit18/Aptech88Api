@@ -19,6 +19,8 @@ public class team {
 	@Column(name = "name")
 	private String name;
 	
+	@Column(name = "logo")
+	private String logo;
 	
 	@OneToMany(mappedBy = "homeTeam")
 	private List<fixture> home;
@@ -65,6 +67,16 @@ public class team {
 
 	public void setAway(List<fixture> away) {
 		this.away = away;
+	}
+
+
+	public String getLogo() {
+		return logo;
+	}
+
+
+	public void setLogo(String logo) {
+		this.logo = logo;
 	}
 	
 	

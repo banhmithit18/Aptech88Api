@@ -102,11 +102,15 @@ public class fixtureController {
 			//if league not exists then create
 			//get league name
 			String league_name = ob.get("name").toString();
+			//get logo
+			String logo = ob.get("logo").toString();
 			//check null for leauge name
 			if(!league_name.equals("null"))
 			{
 				league l = new league();
-				l.setName(league_name);				l.setId(league_id);
+				l.setName(league_name);
+				l.setLogo(logo);
+				l.setId(league_id);
 				l.setStatus(true);
 				//try to save league if fail pass
 				try {
@@ -140,10 +144,12 @@ public class fixtureController {
 			{
 				//if away team is exists , create home team
 				String home_name = ob.getJSONObject("home").get("name").toString();
+				String home_logo = ob.getJSONObject("home").get("logo").toString();
 				//check null for home name
 				if(!home_name.equals("null"))
 				{
 					team t = new team();
+					t.setLogo(home_logo);
 					t.setId(home_id);
 					t.setName(home_name);
 					//try to save team if fail then pass
@@ -165,10 +171,13 @@ public class fixtureController {
 			{
 				//if home team is exists , create away team
 				String away_name = ob.getJSONObject("away").get("name").toString();
+				//get logo
+				String away_logo = ob.getJSONObject("home").get("logo").toString();
 				//check null for home name
 				if(!away_name.equals("null"))
 				{
 					team t = new team();
+					t.setLogo(away_logo);
 					t.setId(away_id);
 					t.setName(away_name);
 					//try to save team if fail then pass

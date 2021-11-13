@@ -1,5 +1,7 @@
 package com.betvn.aptech88.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -14,5 +16,7 @@ public interface fixtureRepository extends JpaRepository<fixture, Integer> {
 	int getLastId();
 	
 	fixture findById(int id);
+	
+	List<fixture> findAllByLeagueId(int leagueId);
 	
 }

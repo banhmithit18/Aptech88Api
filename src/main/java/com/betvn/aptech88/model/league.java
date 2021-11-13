@@ -4,8 +4,6 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Table;
 
 import javax.persistence.Id;
@@ -13,17 +11,18 @@ import javax.persistence.OneToMany;
 
 
 @Entity
-@Table(name = "leauge")
-public class leauge {
+@Table(name = "league")
+public class league {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
 	@Column(name = "name")
 	private String name;
 	
+	@Column(name = "status")
+	private boolean status;
 	
-	@OneToMany(mappedBy = "leauge")
+	@OneToMany(mappedBy = "league")
 	private List<fixture> fixture;
 
 
@@ -54,6 +53,16 @@ public class leauge {
 
 	public void setFixture(List<fixture> fixture) {
 		this.fixture = fixture;
+	}
+
+
+	public boolean isStatus() {
+		return status;
+	}
+
+
+	public void setStatus(boolean status) {
+		this.status = status;
 	}
 	
 	

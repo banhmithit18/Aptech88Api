@@ -31,7 +31,10 @@ public class odd {
 	private int bettypeId;
 	
 	@Column(name = "value")
-	private double value;
+	private String value;
+	
+	@Column(name = "oddValue")
+	private double oddValue;
 	
 	@Column(name = "fixture_id")
 	private int fixtureId;
@@ -75,12 +78,12 @@ public class odd {
 	}
 
 
-	public double getValue() {
+	public String getValue() {
 		return value;
 	}
 
 
-	public void setValue(double value) {
+	public void setValue(String value) {
 		this.value = value;
 	}
 
@@ -123,6 +126,17 @@ public class odd {
 	public void setBettype(bettype bettype) {
 		this.bettype = bettype;
 	}
+
+
+	public Double getOddValue() {
+		return oddValue;
+	}
+
+
+	public void setOddValue(Double oddValue) {
+		this.oddValue = oddValue;
+	}
+	
 	
 	
 	

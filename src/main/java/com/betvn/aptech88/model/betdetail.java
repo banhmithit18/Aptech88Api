@@ -39,6 +39,8 @@ public class betdetail {
 	@Column(name = "status")
 	private Boolean status;
 	
+	@Column(name = "win")
+	private Boolean win;
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
@@ -121,6 +123,16 @@ public class betdetail {
 
 	public void setOdd(odd odd) {
 		this.odd = odd;
+	}
+
+
+	public Boolean getWin() {
+		return win;
+	}
+
+
+	public void setWin(Boolean win) {
+		this.win = win;
 	}
 	
 	

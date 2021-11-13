@@ -8,5 +8,6 @@ import com.betvn.aptech88.model.odd;
 
 @Repository
 public interface oddRepository extends JpaRepository<odd, Integer> {
-	
+	odd findById(int id);
+	odd findByValueAndBettypeIdAndOddValue(String value, int bettypeId, double oddValue);
 }

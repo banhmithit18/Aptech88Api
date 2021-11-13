@@ -34,9 +34,47 @@ public final class mapping {
 	//wallet
 	public static final String WALLET_GET ="/WalletGet";
 	
-	//leaug
-	public static final String LEAUGE_GET ="/LeaugeGet";
-	public static final String LEAUGE_CREATE = "/LeaugeCreate";
-	public static final String LEAGUE_EDIT ="/LeaugeEdit";
-	public static final String LEAUGE_DELETE ="/LeaugeDelete";
+	//leauge
+	public static final String LEAGUE_GET ="/LeagueGet";
+	public static final String LEAGUE_CREATE = "/LeagueCreate";
+	public static final String LEAGUE_EDIT ="/LeagueEdit";
+	public static final String LEAGUE_DELETE ="/LeagueDelete";
+	public static final String LEAGUE_UPDATE = "/LeagueUpdate";
+	public static final String LEAGUE_FIND = "/LeagueFind";
+	
+	//team
+	public static final String TEAM_GET ="/TeamGet";
+	public static final String TEAM_FIND = "/TeamFind";
+	public static final String TEAM_CREATE ="/TeamCreate";
+	public static final String TEAM_EDIT = "/TeamEdit";
+	public static final String TEAM_DELETE = "/TeamDelete";
+	public static final String TEAM_UPDATE ="/TeamUpdate";
+	
+	//bettype
+	public static final String BETTYPE_CREATE = "/BettypeCreate";
+	public static final String BETTYPE_FIND = "/BettypeFind";
+	public static final String BETTYPE_EDIT = "/BettypeEdit";
+	public static final String BETTYPE_DELETE ="/BettypeDelete";
+	public static final String BETTYPE_UPDATE = "/BettypeUpdate";
+	public static final String BETTYPE_GET = "/BettypeGet";
+	
+	//fixture
+	public static final String FIXTURE_CREATE ="/FixtureCreate";
+	public static final String FIXTURE_EDIT ="/FixtureEdit";
+	public static final String FIXTURE_DELETE ="/FixtureDelete";
+	public static final String FIXTURE_UPDATE ="/FixtureUpdate";
+	public static final String FIXTURE_GET ="/FixtureGet";
+	public static final String FIXTURE_FIND ="/FixtureFInd";
+	
+	//odd
+	public static final String ODD_CREATE ="/OddCreate";
+	public static final String ODD_EDIT ="/OddEdit";
+	public static final String ODD_DELETE ="/OddDelete";
+	//bet
+	public static final String BET_CREATE ="/BetCreate";
+	public static final String BET_EDIT ="/BetEdit";
+	public static final String BET_DELETE ="/BetDelete";
+	//key
+	public static final String API_KEY = "c20af5d45emsh3116f32c09643fcp1848d8jsn2559bfc29c69";
+	
 }

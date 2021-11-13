@@ -1,13 +1,12 @@
 package com.betvn.aptech88.model;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.OnDelete;
@@ -26,14 +25,17 @@ import javax.persistence.OneToMany;
 @Table(name = "fixture")
 public class fixture {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+
 	private int id;
 	
-	@Column(name = "leauge_id")
-	private int leaugeId;
+	@Column(name = "league_id")
+	private int leagueId;
 	
 	@Column(name = "date")
 	private Date date;
+	
+	@Column(name = "time")
+	private Time time;
 	
 	@Column(name = "away")
 	private int away;
@@ -44,34 +46,22 @@ public class fixture {
 	@Column(name = "status")
 	private Boolean status;
 	
-	@Column(name = "result")
-	private String result;
 	
 	@Column(name = "in_match")
-	private Boolean inMatch;
-	
-	@Column(name = "red_card")
-	private int redCard;
-	
-	@Column(name = "yellow_card")
-	private int yellowCard;
-	
-	@Column(name = "foul")
-	private int foul;
-	
-	@Column(name = "cornner")
-	private int cornner;
+	private Boolean inMatch;	
 	
 	
 	@OneToMany(mappedBy = "fixture")
 	private List<odd> odd;
 	
+	@OneToMany(mappedBy = "fixture")
+	private List<fixture_detail> fixture_detail;
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "leauge_id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "league_id", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
-	private leauge leauge;
+	private league league;
 	
 	
 	@JsonIgnore
@@ -98,13 +88,13 @@ public class fixture {
 	}
 
 
-	public int getLeaugeId() {
-		return leaugeId;
+	public int getLeagueId() {
+		return leagueId;
 	}
 
 
-	public void setLeaugeId(int leaugeId) {
-		this.leaugeId = leaugeId;
+	public void setLeagueId(int leaugeId) {
+		this.leagueId = leaugeId;
 	}
 
 
@@ -147,17 +137,6 @@ public class fixture {
 		this.status = status;
 	}
 
-
-	public String getResult() {
-		return result;
-	}
-
-
-	public void setResult(String result) {
-		this.result = result;
-	}
-
-
 	public Boolean getInMatch() {
 		return inMatch;
 	}
@@ -165,46 +144,6 @@ public class fixture {
 
 	public void setInMatch(Boolean inMatch) {
 		this.inMatch = inMatch;
-	}
-
-
-	public int getRedCard() {
-		return redCard;
-	}
-
-
-	public void setRedCard(int redCard) {
-		this.redCard = redCard;
-	}
-
-
-	public int getYellowCard() {
-		return yellowCard;
-	}
-
-
-	public void setYellowCard(int yellowCard) {
-		this.yellowCard = yellowCard;
-	}
-
-
-	public int getFoul() {
-		return foul;
-	}
-
-
-	public void setFoul(int foul) {
-		this.foul = foul;
-	}
-
-
-	public int getCornner() {
-		return cornner;
-	}
-
-
-	public void setCornner(int cornner) {
-		this.cornner = cornner;
 	}
 
 
@@ -218,13 +157,13 @@ public class fixture {
 	}
 
 
-	public leauge getLeauge() {
-		return leauge;
+	public league getLeauge() {
+		return league;
 	}
 
 
-	public void setLeauge(leauge leauge) {
-		this.leauge = leauge;
+	public void setLeauge(league league) {
+		this.league = league;
 	}
 
 
@@ -246,11 +185,19 @@ public class fixture {
 	public void setAwayTeam(team awayTeam) {
 		this.awayTeam = awayTeam;
 	}
-	
-	
-	
-	
-	
+
+
+	public Time getTime() {
+		return time;
+	}
+
+
+	public void setTime(Time time) {
+		this.time = time;
+	}
+
+
+
 	
 	
 }

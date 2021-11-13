@@ -266,7 +266,7 @@ public class accountController {
 
 	// unban
 	@RequestMapping(value = mapping.ACCOUNT_UNBAN, method = RequestMethod.POST, consumes = { "application/json" })
-	public ResponseEntity<?> ban(@RequestBody int id) {
+	public ResponseEntity<?> unban(@RequestBody int id) {
 		// find account if not exists return account with id = 0
 		account acc = new account();
 		try {

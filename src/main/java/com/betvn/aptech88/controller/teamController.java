@@ -136,7 +136,7 @@ public class teamController {
 				for (int i = 0; i < arr.length(); i++) {
 					// get id
 					int team_id = arr.getJSONObject(i).getJSONObject("team").getInt("id");
-					if (!teams.existsById(league_id)) {
+					if (!teams.existsById(team_id)) {
 						// create constructor team
 						team t = new team();
 						// get league name

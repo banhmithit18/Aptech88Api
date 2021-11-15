@@ -4,14 +4,16 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.betvn.aptech88.model.payment;
@@ -23,6 +25,7 @@ import com.betvn.aptech88.repository.walletRepository;
 
 import ultis.mapping;
 
+@CrossOrigin(origins = "http://localhost:8080/")
 @RestController
 public class paymentController {
 	@Autowired
@@ -111,4 +114,53 @@ public class paymentController {
 		return payment_list;
 	}
 
+	//get wallet by account id
+	@RequestMapping (value = "/payment/getPaymentByWallet")
+	public @ResponseBody List<Object[]> findById (HttpServletRequest request)
+	{
+		int id = Integer.parseInt(request.getParameter("id"));
+		int skip = Integer.parseInt(request.getParameter("skip"));
+		int take = Integer.parseInt(request.getParameter("take"));
+		List<Object[]> p = payments.findPaymentPagination(id, skip, take);
+		return p;
+	}
+
+	@RequestMapping (value = "/payment/countPaymentByWalletId")
+	public @ResponseBody int countPaymentByWalletId (HttpServletRequest request)
+	{
+		int id = Integer.parseInt(request.getParameter("id"));
+		List<payment> p = payments.findAllByWalletId(id);
+		return p.size();
+	}
+
+	@RequestMapping (value = "/payment/filterDate")
+	public @ResponseBody List<Object[]> filterDate (HttpServletRequest request)
+	{
+		List<Object[]> p = null;
+		String fromDate = request.getParameter("fromDate");
+		String toDate = request.getParameter("toDate");
+		if(fromDate == "" || toDate == ""){
+			return p;
+		}
+		int skip = Integer.parseInt(request.getParameter("skip"));
+		int take = Integer.parseInt(request.getParameter("take"));
+		int wallet_id = Integer.parseInt(request.getParameter("wallet_id"));
+
+		p = payments.filterDate(fromDate, toDate, skip, take,wallet_id);
+		return p;
+	}
+
+	@RequestMapping (value = "/payment/countOfFilter")
+	public @ResponseBody int countOfFilter (HttpServletRequest request)
+	{
+		String fromDate = request.getParameter("fromDate");
+		String toDate = request.getParameter("toDate");
+		if(fromDate == "" || toDate == ""){
+			return 0;
+		}
+		int wallet_id = Integer.parseInt(request.getParameter("wallet_id"));
+
+		List<Object[]> p = payments.countOfFilter(fromDate, toDate,wallet_id);
+		return p.size();
+	}
 }

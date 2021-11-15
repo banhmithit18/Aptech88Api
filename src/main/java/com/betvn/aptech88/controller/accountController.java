@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,11 +34,16 @@ import com.betvn.aptech88.model.wallet;
 import com.betvn.aptech88.repository.accountRepository;
 import com.betvn.aptech88.repository.protect_timeRepository;
 import com.betvn.aptech88.repository.walletRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.bytebuddy.utility.RandomString;
 import ultis.emailContent;
 import ultis.mapping;
 
+@CrossOrigin(origins = "http://localhost:8080/")
 @RestController
 public class accountController {
 	@Autowired
@@ -58,7 +64,64 @@ public class accountController {
 		List<account> account_list = accounts.findAll();
 		return account_list;
 	}
-
+	//find account by id of android
+			@RequestMapping(value = "/FindAccount", method = RequestMethod.POST, consumes = {"application/json"})
+			public ResponseEntity<?> find(@RequestBody String id_account)
+			{
+				ObjectMapper mapper = new ObjectMapper();
+				try {
+					JsonNode jsonNode = mapper.readTree(id_account);
+					int id=jsonNode.get("id").asInt();
+					//find account
+					account c = accounts.findById(id);
+					//check if found account
+					if( c != null)
+					{
+						//return found account
+						return new ResponseEntity<>(c, HttpStatus.CREATED);
+					}
+					else {
+						//if not found account return with id = 0
+						return ResponseEntity.status(404).body("Account not found");
+					}
+				} catch (JsonMappingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JsonProcessingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return null;
+			}
+			//find account by phone
+				@RequestMapping(value = "/AccountPhone", method = RequestMethod.POST, consumes = {"application/json"})
+				public ResponseEntity<?> find_phone(@RequestBody String phone)
+				{
+					ObjectMapper mapper = new ObjectMapper();
+					try {
+						JsonNode jsonNode = mapper.readTree(phone);
+						String phones=jsonNode.get("phonenumber").asText();
+						//find account
+						account c = accounts.findByPhonenumber(phones);
+						//check if found account
+						if( c != null)
+						{
+							//return found account
+							return new ResponseEntity<>(c, HttpStatus.CREATED);
+						}
+						else {
+							//if not found account return with id = 0
+							return ResponseEntity.status(404).body("Phone not found");
+						}
+					} catch (JsonMappingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (JsonProcessingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return null;
+				}
 	// find account by id
 	@RequestMapping(value = mapping.ACCOUNT_FIND, method = RequestMethod.POST, consumes = { "application/json" })
 	public ResponseEntity<?> find(@RequestBody int id) {
@@ -116,7 +179,6 @@ public class accountController {
 				sendVerificationEmail(acc);
 				// return account
 				return new ResponseEntity<account>(acc, HttpStatus.CREATED);
-
 			} catch (Exception ex) {
 				// if account not created
 				return ResponseEntity.status(409).body("Account cannot be create");
@@ -183,9 +245,11 @@ public class accountController {
 	@RequestMapping(value = mapping.ACCOUNT_EDIT, method = RequestMethod.POST, consumes = { "application/json" })
 	public ResponseEntity<?> edit(@RequestBody account c) {
 		account acc = accounts.findById(c.getId());
-
 		// check if account found
 		if (acc != null) {
+			if (accounts.existsByEmail(c.getPhonenumber())) {
+				return ResponseEntity.status(409).body("Phone is taken");
+			}
 			acc.setAddress(c.getAddress());
 			acc.setProvince(c.getProvince());
 			acc.setName(c.getName());

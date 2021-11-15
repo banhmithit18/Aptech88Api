@@ -64,14 +64,14 @@ public class fixture {
 	private league league;
 	
 	
-	@JsonIgnore
+
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "home", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private team homeTeam;
 	
 	
-	@JsonIgnore
+	
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "away", referencedColumnName = "id", insertable = false, updatable = false)
 	@OnDelete(action = OnDeleteAction.CASCADE)

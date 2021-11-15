@@ -53,8 +53,8 @@ public class fixtureController {
 	}
 	//get with id league
 	@RequestMapping(value = mapping.FIXTURE_GET, method = RequestMethod.POST, consumes = { "application/json" })
-	public ResponseEntity<?> get(@RequestBody fixture f) {
-		List<fixture> list_fixture =fixtures.findAllByLeagueId(f.getLeagueId());
+	public ResponseEntity<?> get(@RequestBody league l) {
+		List<fixture> list_fixture =fixtures.findAllByLeagueId(l.getId());
 		return new ResponseEntity<List<fixture>>(list_fixture, HttpStatus.OK);
 
 	}
@@ -165,7 +165,7 @@ public class fixtureController {
 				// if home team is exists , create away team
 				String away_name = ob.getJSONObject("away").get("name").toString();
 				// get logo
-				String away_logo = ob.getJSONObject("home").get("logo").toString();
+				String away_logo = ob.getJSONObject("away").get("logo").toString();
 				// check null for home name
 				if (!away_name.equals("null")) {
 					team t = new team();

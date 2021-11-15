@@ -6,6 +6,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -22,10 +24,11 @@ public class team {
 	@Column(name = "logo")
 	private String logo;
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "homeTeam")
 	private List<fixture> home;
 	
-	
+	@JsonIgnore
 	@OneToMany(mappedBy = "awayTeam")
 	private List<fixture> away;
 

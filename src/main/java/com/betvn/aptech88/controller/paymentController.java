@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.betvn.aptech88.model.account;
 import com.betvn.aptech88.model.payment;
 import com.betvn.aptech88.model.promotion;
 import com.betvn.aptech88.model.wallet;
+import com.betvn.aptech88.repository.accountRepository;
 import com.betvn.aptech88.repository.paymentRepository;
 import com.betvn.aptech88.repository.promotionRepository;
 import com.betvn.aptech88.repository.walletRepository;
@@ -34,6 +36,8 @@ public class paymentController {
 	walletRepository wallets;
 	@Autowired
 	promotionRepository promotions;
+	@Autowired
+	accountRepository accounts;
 
 
 	// create payment
@@ -54,11 +58,16 @@ public class paymentController {
 				// add to walet
 				if (promotion != null) {
 					w.setAmount(current_amount + (p.getAmount() * promotion.getValue()));
+					account a = w.getAccount();
+					a.setTodayDeposit(p.getAmount());
+					accounts.save(a);
 				} else {
 					//if promotion is null set promotion id to default = 1
 					p.setPromotionId(1);
 					w.setAmount(current_amount + p.getAmount());
-
+					account a = w.getAccount();
+					a.setTodayDeposit(p.getAmount());
+					accounts.save(a);
 				}
 
 			} else if (p.getPaymentType().equals("withdraw")) {

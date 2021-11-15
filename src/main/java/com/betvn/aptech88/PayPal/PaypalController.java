@@ -21,10 +21,6 @@ public class PaypalController {
     public static final String SUCCESS_URL = "pay/success";
     public static final String CANCEL_URL = "pay/cancel";
     
-    @GetMapping("/Test")
-	public String Test() {
-        return "Test";
-    }
     
     @PostMapping("/pay")
     public ResponseEntity<String> payment(@RequestBody Order order) {

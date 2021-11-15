@@ -5,6 +5,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +28,7 @@ import com.betvn.aptech88.model.bettype;
 import com.betvn.aptech88.model.fixture;
 import com.betvn.aptech88.model.fixture_detail;
 import com.betvn.aptech88.model.odd;
+import com.betvn.aptech88.model.transaction;
 import com.betvn.aptech88.model.wallet;
 import com.betvn.aptech88.repository.betRepository;
 import com.betvn.aptech88.repository.bet_historyRepository;
@@ -34,7 +37,10 @@ import com.betvn.aptech88.repository.bettypeRepository;
 import com.betvn.aptech88.repository.fixtureRepository;
 import com.betvn.aptech88.repository.fixture_detailRepository;
 import com.betvn.aptech88.repository.oddRepository;
+import com.betvn.aptech88.repository.transactionRepository;
 import com.betvn.aptech88.repository.walletRepository;
+import com.paypal.api.payments.Amount;
+import com.paypal.api.payments.Transaction;
 
 import ultis.mapping;
 
@@ -57,6 +63,8 @@ public class betController {
 	fixture_detailRepository fixture_details;
 	@Autowired
 	bet_historyRepository bet_histories;
+	@Autowired
+	transactionRepository transactions;
 
 	// create
 	// note satatus in betdetail mean returnable or not, if one of betdetail satatus
@@ -113,7 +121,7 @@ public class betController {
 
 					// create history bet
 					bet_history bh = new bet_history();
-					bh.setAccountId(bet.getWallet().getAccountId());
+					bh.setAccountId(w.getAccountId());
 					bh.setBet(bet.getId());
 					bet_histories.save(bh);
 
@@ -133,21 +141,21 @@ public class betController {
 	}
 	/// check bet
 
-	@RequestMapping("/test")
-	public void result() throws IOException, InterruptedException {
+	@RequestMapping("BetResult")
+	public String result() throws IOException, InterruptedException {
 		// init match detail
 		// get all bet where status = false
 		List<bet> bet_list = bets.findByStatusFalse();
-		for (bet bet : bet_list) {
+		for (int i = 0; i < bet_list.size(); i++) {
 			// get bet detail list
 
-			List<betdetail> betdetail_list = bet.getBetdetail();
+			List<betdetail> betdetail_list = bet_list.get(i).getBetdetail();
 
-			for (betdetail betdetail : betdetail_list) {
-				int fixture_id = betdetail.getOdd().getFixtureId();
+			for (int j = 0; j < betdetail_list.size(); j++) {
+				int fixture_id = betdetail_list.get(j).getOdd().getFixtureId();
 				if (checkFixtureDetail(fixture_id)) {
-					betdetail.setWin(calculateResultBet(betdetail, fixture_id));
-					betdetails.save(betdetail);
+					betdetail_list.get(j).setWin(calculateResultBet(betdetail_list.get(j), fixture_id));
+					betdetails.save(betdetail_list.get(j));
 				} else {
 					continue;
 				}
@@ -155,7 +163,88 @@ public class betController {
 			}
 
 		}
+		return "Calculated done!";
 
+	}
+
+	// return if win or not
+	@RequestMapping("/BetReturn")
+	public String returnBet() {
+		List<bet> bet_list = bets.findByWin(0);
+		for (int i = 0; i < bet_list.size(); i++) {
+			// get bet detail list
+
+			List<betdetail> betdetail_list = bet_list.get(i).getBetdetail();
+
+			for (int j = 0; j < betdetail_list.size(); j++) {
+				if(betdetail_list.get(j).getWin() == false)
+				{
+					double lossAmount = bet_list.get(i).getBetAmount();
+					bet_list.get(i).setWin(-lossAmount);
+				}
+				else
+				{
+					continue;
+				}			
+
+			}
+			if(bet_list.get(i).getWin() == 0)
+			{
+				double winAmount = bet_list.get(i).getBetAmount()* bet_list.get(i).getOdd();
+				bet_list.get(i).setWin(winAmount);
+				//get wallet
+				wallet w = bet_list.get(i).getWallet();
+				//get admin wallet id
+				wallet w_a = wallets.findById(1);
+				w_a.setAmount(w_a.getAmount() - winAmount);
+				w.setAmount(w.getAmount() + winAmount);
+				wallets.save(w);
+				wallets.save(w_a);
+				//create transaction
+				transaction t = new transaction();
+				t.setAmount(winAmount);
+				t.setFromWallet(1);
+				t.setToWallet(w.getId());
+				t.setReason("Return Win");
+				t.setStatus(true);
+				LocalDate d = LocalDate.now();
+				Date date = Date.valueOf(d);
+				t.setTransactionDate(date);
+				transactions.save(t);	
+				bet_list.get(i).setStatus(true);
+				bets.save(bet_list.get(i));
+				
+			}
+			if(bet_list.get(i).getWin() < 0)
+			{
+				double lossAmount = bet_list.get(i).getBetAmount();
+				bet_list.get(i).setWin(-lossAmount);
+				//get wallet
+				wallet w = bet_list.get(i).getWallet();
+				//get admin wallet id
+				wallet w_a = wallets.findById(1);
+				w.setAmount(w_a.getAmount() - lossAmount);
+				w_a.setAmount(w_a.getAmount() + Math.abs(lossAmount));
+				wallets.save(w);
+				wallets.save(w_a);
+				//create transaction
+				transaction t = new transaction();
+				t.setAmount(Math.abs(lossAmount));
+				t.setFromWallet(w.getId());
+				t.setToWallet(1);
+				t.setReason("Return Loss");
+				t.setStatus(true);
+				LocalDate d = LocalDate.now();
+				Date date = Date.valueOf(d);
+				t.setTransactionDate(date);
+				transactions.save(t);
+				bet_list.get(i).setStatus(true);
+				bets.save(bet_list.get(i));
+			}
+			
+
+		}
+		return "Returned";
 	}
 
 	public Boolean calculateResultBet(betdetail bt, int fixture_id) {
@@ -277,8 +366,8 @@ public class betController {
 				String exactScore = "0:0";
 				String correctScoreFirstHalf = "0:0";
 				String correctScoreSecondHalf = "0:0";
-				String teamScoreFirst = "None";
-				String teamScoreLast = "None";
+				String teamScoreFirst = "Draw";
+				String teamScoreLast = "Draw";
 				String tenMinWinner = "Draw";
 				int homeGoal = 0;
 				int awayGoal = 0;
@@ -341,20 +430,20 @@ public class betController {
 
 					switch (type) {
 					case "Card": {
-						
-							if (detail.equals("Red Card") || detail.equals("Second Yellow card")) {
-								redCard++;
-							}
-							if (team_id == home_id) {
-								card++;
-								homeCard++;
 
-							}
-							if (team_id == away_id) {
-								card++;
-								awayCard++;
-							}
-						
+						if (detail.equals("Red Card") || detail.equals("Second Yellow card")) {
+							redCard++;
+						}
+						if (team_id == home_id) {
+							card++;
+							homeCard++;
+
+						}
+						if (team_id == away_id) {
+							card++;
+							awayCard++;
+						}
+
 					}
 						break;
 					case "Goal": {
@@ -440,10 +529,9 @@ public class betController {
 							}
 
 						}
-						if(!detail.equals("Missed Penalty"))
-						{
-						soccers.add(player);
-						team_soccers.add(team_name);
+						if (!detail.equals("Missed Penalty")) {
+							soccers.add(player);
+							team_soccers.add(team_name);
 						}
 					}
 					}
@@ -477,6 +565,10 @@ public class betController {
 				homeGoal = home_goal_first_half + home_goal_second_half;
 				// calculate away goal
 				awayGoal = away_goal_first_half + away_goal_second_half;
+				// calculate if both team socore
+				if (homeGoal != 0 && awayGoal != 0) {
+					bothTeamScore = true;
+				}
 				// calculate matchWinner
 				if (homeGoal > awayGoal) {
 					matchWinner = "Home";
@@ -493,13 +585,13 @@ public class betController {
 				try {
 					teamScoreLast = team_soccers.get(team_soccers.size() - 1);
 				} catch (Exception ex) {
-					teamScoreLast = "None";
+					teamScoreLast = "Draw";
 				}
 				// calculate team score first
 				try {
 					teamScoreFirst = team_soccers.get(0);
 				} catch (Exception ex) {
-					teamScoreFirst = "None";
+					teamScoreFirst = "Draw";
 				}
 				// calculate ten minute winner
 				if (away_ten_min_goal > home_ten_min_goal) {
@@ -509,8 +601,6 @@ public class betController {
 				// calculate if both team scores second half
 				else if (away_ten_min_goal < home_ten_min_goal) {
 					tenMinWinner = "Home";
-				} else {
-					tenMinWinner = "Draw";
 				}
 				// get stat
 				HttpRequest request_event = HttpRequest.newBuilder()
@@ -600,13 +690,14 @@ public class betController {
 				fd.setSoccers(soccers.toString());
 				// save
 				fixture_details.save(fd);
+				return true;
 
 			}
 
 		} else {
 			return false;
 		}
-		return true;
+
 	}
 
 	public boolean checkBettype(List<betdetail_odd> bo) {

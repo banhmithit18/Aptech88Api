@@ -49,7 +49,7 @@ public class fixture_detail {
 	@Column(name = "clean_sheet_home")
 	private Boolean cleanSheetHome ;
 	
-	@Column(name = "clean_sheet_way")
+	@Column(name = "clean_sheet_away")
 	private Boolean cleanSheetAway ;
 	
 	@Column(name = "both_team_score")
@@ -85,7 +85,7 @@ public class fixture_detail {
 	@Column(name = "away_goal")
 	private int awayGoal ;
 	
-	@Column(name = "corners")
+	@Column(name = "total_corners")
 	private int corners ;
 	
 	@Column(name = "away_corners")
@@ -121,10 +121,10 @@ public class fixture_detail {
 	@Column(name = "total_shot_on_goal")
 	private int totalShotOnGoal ;
 	
-	@Column(name = "home_shot_on_goal")
+	@Column(name = "home_total_shot_on_goal")
 	private int homeShotOnGoal ;
 	
-	@Column(name = "away_shot_on_goal")
+	@Column(name = "away_total_shot_on_goal")
 	private int awayShotOnGoal ;
 	
 	@Column(name = "first_goal_method")

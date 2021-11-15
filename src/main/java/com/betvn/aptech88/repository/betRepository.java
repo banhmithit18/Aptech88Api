@@ -10,5 +10,7 @@ import com.betvn.aptech88.model.bet;
 
 @Repository
 public interface betRepository extends JpaRepository<bet, Integer> {
-	List<bet> findAllByStatusFalse();
+	List<bet> findByStatusFalse();
+	List<bet> findByWinIsNull();
+	List<bet> findByWin(double win);
 }

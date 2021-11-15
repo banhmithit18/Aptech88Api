@@ -215,7 +215,7 @@ public class fixtureController {
 		if (day_between < 0) {
 			return "End date must be greater than start date!";
 		} else {
-			for (int i = 0; i <= day_between; i++) {
+			for (int i = 0; i < day_between+1; i++) {
 				String date = (from_date.plusDays(i)).toString();
 				String url = "https://api-football-v1.p.rapidapi.com/v3/fixtures?date=" + date;
 				try {

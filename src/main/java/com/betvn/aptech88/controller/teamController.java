@@ -55,6 +55,19 @@ public class teamController {
 		List<team> leauge_list = teams.findAll();
 		return leauge_list;
 	}
+	@RequestMapping(value = mapping.TEAM_GET,method = RequestMethod.POST)
+	public  ResponseEntity<?> getById(@RequestBody team t) {
+		 team team = teams.findById(t.getId());
+		 if( team != null)
+		 {
+			 return new ResponseEntity<team>(team,HttpStatus.OK);
+		 }
+		 else
+		 {
+			 return ResponseEntity.status(404).body("Not found");
+		 }
+		
+	}
 
 	// edit leauge
 	@RequestMapping(value = mapping.TEAM_EDIT, method = RequestMethod.POST, consumes = { "application/json" })

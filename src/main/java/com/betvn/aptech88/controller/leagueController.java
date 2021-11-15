@@ -5,7 +5,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
+import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -59,6 +59,19 @@ public class leagueController {
 		List<league> leauge_list = leauges.findAllByStatusTrue();
 		return leauge_list;
 	}
+	
+	
+	// get league by status true
+		@RequestMapping("/LeagueTop")
+		public List<league> getTopLeague() {
+			List<league> league_list = new ArrayList<league>();
+			int array_id [] = { 39, 140, 135, 61, 88, 253,17,18,2,12,16,3,848,5 };
+			for (int i : array_id) {
+				league l = leauges.findById(i);
+				league_list.add(l);
+			}
+			return league_list;
+		}
 
 	// edit league
 	@RequestMapping(value = mapping.LEAGUE_EDIT, method = RequestMethod.POST, consumes = { "application/json" })

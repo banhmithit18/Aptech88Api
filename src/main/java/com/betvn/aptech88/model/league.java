@@ -6,6 +6,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -25,6 +27,7 @@ public class league {
 	@Column(name = "status")
 	private boolean status;
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "league")
 	private List<fixture> fixture;
 

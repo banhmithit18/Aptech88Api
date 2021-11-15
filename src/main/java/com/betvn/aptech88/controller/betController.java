@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.betvn.aptech88.model.bet;
 import com.betvn.aptech88.model.bet_betdetail_odd;
+import com.betvn.aptech88.model.bet_history;
 import com.betvn.aptech88.model.betdetail;
 import com.betvn.aptech88.model.betdetail_odd;
 import com.betvn.aptech88.model.bettype;
@@ -27,6 +28,7 @@ import com.betvn.aptech88.model.fixture_detail;
 import com.betvn.aptech88.model.odd;
 import com.betvn.aptech88.model.wallet;
 import com.betvn.aptech88.repository.betRepository;
+import com.betvn.aptech88.repository.bet_historyRepository;
 import com.betvn.aptech88.repository.betdetailRepository;
 import com.betvn.aptech88.repository.bettypeRepository;
 import com.betvn.aptech88.repository.fixtureRepository;
@@ -53,6 +55,8 @@ public class betController {
 	fixtureRepository fixtures;
 	@Autowired
 	fixture_detailRepository fixture_details;
+	@Autowired
+	bet_historyRepository bet_histories;
 
 	// create
 	// note satatus in betdetail mean returnable or not, if one of betdetail satatus
@@ -69,6 +73,11 @@ public class betController {
 				// find wallet
 				wallet w = wallets.findById(bbo.getBet().getWalletId());
 				if (w != null) {
+					double amout_left = w.getAmount();
+					double amount_bet = bbo.getBet().getBetAmount();
+					if (amount_bet > amout_left) {
+						return ResponseEntity.status(404).body("Balance insufficient");
+					}
 					double odd_value = 1;
 					// create bet (only need bet ammount, wallet with bet constructor)
 					bet bet = new bet();
@@ -100,7 +109,14 @@ public class betController {
 						betdetails.save(betdetail);
 					}
 					bet.setOdd(odd_value);
-					bets.save(bet);
+					bet = bets.save(bet);
+
+					// create history bet
+					bet_history bh = new bet_history();
+					bh.setAccountId(bet.getWallet().getAccountId());
+					bh.setBet(bet.getId());
+					bet_histories.save(bh);
+
 					return ResponseEntity.status(200).body("Betted");
 
 				} else {
@@ -117,10 +133,11 @@ public class betController {
 	}
 	/// check bet
 
-	public String result() throws IOException, InterruptedException {
+	@RequestMapping("/test")
+	public void result() throws IOException, InterruptedException {
 		// init match detail
 		// get all bet where status = false
-		List<bet> bet_list = bets.findAllByStatusFalse();
+		List<bet> bet_list = bets.findByStatusFalse();
 		for (bet bet : bet_list) {
 			// get bet detail list
 
@@ -129,9 +146,10 @@ public class betController {
 			for (betdetail betdetail : betdetail_list) {
 				int fixture_id = betdetail.getOdd().getFixtureId();
 				if (checkFixtureDetail(fixture_id)) {
-
+					betdetail.setWin(calculateResultBet(betdetail, fixture_id));
+					betdetails.save(betdetail);
 				} else {
-					return "Fail, try again later!";
+					continue;
 				}
 
 			}
@@ -150,177 +168,285 @@ public class betController {
 		// match winner
 		case 1: {
 			if (fd.getMatchWinner().equals(value)) {
-				bt.setWin(true);
+				return true;
 			} else {
-				bt.setWin(false);
+				return false;
 			}
 		}
-			break;
 		// second half winner
 		case 3: {
 			if (fd.getSecondHalfWinner().equals(value)) {
-				bt.setWin(true);
+				return true;
 			} else {
-				bt.setWin(false);
+				return false;
 			}
-			break;
 		}
 		// home/away
-		
+
 		case 2: {
-			
-			if (fd.getSecondHalfWinner().equals(value)) {
-				bt.setWin(true);
+
+			if (value.equals("Home")) {
+				if (fd.getFirstHalfWinner().equals("Home") && fd.getSecondHalfWinner().equals("Away"))
+					return true;
+
 			} else {
-				bt.setWin(false);
+				return false;
 			}
+			if (value.equals("Away")) {
+				if (fd.getFirstHalfWinner().equals("Away") && fd.getSecondHalfWinner().equals(""))
+					return true;
+				else {
+					return false;
+				}
+			}
+		}
+		// asian handicap
+		case 4: {
+			// get home or away
+			String team = value.substring(0, 4);
+			double handicap = Double.valueOf(value.substring(5));
+			if (team.equals("Home")) {
+				int away_goal = fd.getAwayGoal();
+				double home_goal = fd.getHomeGoal() + handicap;
+				if (home_goal > away_goal) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (team.equals("Away")) {
+				double away_goal = fd.getAwayGoal() + handicap;
+				int home_goal = fd.getHomeGoal();
+				if (home_goal < away_goal) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
 			break;
+		// goal upder/over
+		case 5: {
+			double handicap = 0;
+			if (value.contains("Over")) {
+				handicap = Double.valueOf(value.substring(5));
+				if (fd.getGoal() < handicap) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (value.contains("Under")) {
+				handicap = Double.valueOf(value.substring(6));
+				if (fd.getGoal() > handicap) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+
 		}
+			break;
+
 		}
+		return null;
 	}
 
 	// cannot get method goal, first , second half corner, first/last corner
 	public boolean checkFixtureDetail(int fixtureId) throws IOException, InterruptedException {
-		fixture_detail fde = fixture_details.findByFixtureId(fixtureId);
-		if (fde != null) {
-			return true;
-		} else {
-			// init variable
-			String matchWinner = "Draw";
-			String secondHalfWinner = "Draw";
-			String firstHalfWinner = "Draw";
-			int goal = 0;
-			int goalFirstHalf = 0;
-			int goalSecondHalf = 0;
-			Boolean cleanSheetHome = true;
-			Boolean cleanSheetAway = true;
-			Boolean bothTeamScore = false;
-			Boolean bothTeamScoreFirstHalf = false;
-			Boolean bothTeamScoreSecondHalf = false;
-			String exactScore = "0:0";
-			String correctScoreFirstHalf = "0:0";
-			String correctScoreSecondHalf = "0:0";
-			String teamScoreFirst = "None";
-			String teamScoreLast = "None";
-			String tenMinWinner = "Draw";
-			int homeGoal = 0;
-			int awayGoal = 0;
-			int corners = 0;
-			int awayCorner = 0;
-			int homeCorner = 0;
-			String firstCorner = "None";
-			String lastCorner = "None";
-			int totalCornerFirstHalf = 0;
-			int totalCornerSecondHalf = 0;
-			int card = 0;
-			int redCard = 0;
-			int homeCard = 0;
-			int awayCard = 0;
-			int totalShotOnGoal = 0;
-			int homeShotOnGoal = 0;
-			int awayShotOnGoal = 0;
-			String firstGoalMethod = "None";
-			List<String> soccers = new ArrayList<String>();
+		// check if fixture is start
+		fixture fixture = fixtures.findById(fixtureId);
+		if (fixture.getInMatch() == true) {
 
-			List<String> team_soccers = new ArrayList<String>();
-			int home_goal_first_half = 0;
-			int away_goal_first_half = 0;
-			int home_goal_second_half = 0;
-			int away_goal_second_half = 0;
-			int away_ten_min_goal = 0;
-			int home_ten_min_goal = 0;
+			fixture_detail fde = fixture_details.findByFixtureId(fixtureId);
+			if (fde != null) {
+				return true;
+			} else {
+				// init variable
+				String matchWinner = "Draw";
+				String secondHalfWinner = "Draw";
+				String firstHalfWinner = "Draw";
+				int goal = 0;
+				int goalFirstHalf = 0;
+				int goalSecondHalf = 0;
+				Boolean cleanSheetHome = true;
+				Boolean cleanSheetAway = true;
+				Boolean bothTeamScore = false;
+				Boolean bothTeamScoreFirstHalf = false;
+				Boolean bothTeamScoreSecondHalf = false;
+				String exactScore = "0:0";
+				String correctScoreFirstHalf = "0:0";
+				String correctScoreSecondHalf = "0:0";
+				String teamScoreFirst = "None";
+				String teamScoreLast = "None";
+				String tenMinWinner = "Draw";
+				int homeGoal = 0;
+				int awayGoal = 0;
+				int corners = 0;
+				int awayCorner = 0;
+				int homeCorner = 0;
+				String firstCorner = "None";
+				String lastCorner = "None";
+				int totalCornerFirstHalf = 0;
+				int totalCornerSecondHalf = 0;
+				int card = 0;
+				int redCard = 0;
+				int homeCard = 0;
+				int awayCard = 0;
+				int totalShotOnGoal = 0;
+				int homeShotOnGoal = 0;
+				int awayShotOnGoal = 0;
+				String firstGoalMethod = "None";
+				List<String> soccers = new ArrayList<String>();
 
-			// find fixure
-			fixture f = fixtures.findById(fixtureId);
-			// get away id
-			int away_id = f.getAway();
-			// get home id
-			int home_id = f.getHome();
-			// call api
-			HttpRequest request = HttpRequest.newBuilder()
-					.uri(URI.create("https://api-football-v1.p.rapidapi.com/v3/fixtures/events?fixture" + fixtureId))
-					.header("x-rapidapi-host", "api-football-v1.p.rapidapi.com")
-					.header("x-rapidapi-key", mapping.API_KEY).method("GET", HttpRequest.BodyPublishers.noBody())
-					.build();
-			HttpResponse<String> response = HttpClient.newHttpClient().send(request,
-					HttpResponse.BodyHandlers.ofString());
+				List<String> team_soccers = new ArrayList<String>();
+				int home_goal_first_half = 0;
+				int away_goal_first_half = 0;
+				int home_goal_second_half = 0;
+				int away_goal_second_half = 0;
+				int away_ten_min_goal = 0;
+				int home_ten_min_goal = 0;
 
-			// get json from api
-			String jsonString = response.body();
-			// convert to json object
-			JSONObject obj = new JSONObject(jsonString);
-			// get array child of response
-			JSONArray arr = obj.getJSONArray("response");
+				// find fixure
+				fixture f = fixtures.findById(fixtureId);
+				// get away id
+				int away_id = f.getAway();
+				// get home id
+				int home_id = f.getHome();
+				// call api
+				HttpRequest request = HttpRequest.newBuilder()
+						.uri(URI.create(
+								"https://api-football-v1.p.rapidapi.com/v3/fixtures/events?fixture=" + fixtureId))
+						.header("x-rapidapi-host", "api-football-v1.p.rapidapi.com")
+						.header("x-rapidapi-key", mapping.API_KEY).method("GET", HttpRequest.BodyPublishers.noBody())
+						.build();
+				HttpResponse<String> response = HttpClient.newHttpClient().send(request,
+						HttpResponse.BodyHandlers.ofString());
 
-			for (int i = 0; i < arr.length(); i++) {
+				// get json from api
+				String jsonString = response.body();
+				// convert to json object
+				JSONObject obj = new JSONObject(jsonString);
+				// get array child of response
+				JSONArray arr = obj.getJSONArray("response");
 
-				int time = arr.getJSONObject(i).getJSONObject("time").getInt("elapsed");
-				int team_id = arr.getJSONObject(i).getJSONObject("team").getInt("id");
-				String team_name = arr.getJSONObject(i).getJSONObject("team").getString("name");
-				String type = arr.getJSONObject(i).getString("type");
-				String detail = arr.getJSONObject(i).getString("detail");
-				String player = arr.getJSONObject(i).getJSONObject("player").getString("name");
+				for (int i = 0; i < arr.length(); i++) {
 
-				switch (type) {
-				case "Card": {
-					if (detail.equals("Yellow Card")) {
-						if (type.equals("Red Card")) {
-							redCard++;
-						}
-						if (team_id == home_id) {
-							card++;
-							homeCard++;
+					int time = arr.getJSONObject(i).getJSONObject("time").getInt("elapsed");
+					int team_id = arr.getJSONObject(i).getJSONObject("team").getInt("id");
+					String team_name = arr.getJSONObject(i).getJSONObject("team").getString("name");
+					String type = arr.getJSONObject(i).getString("type");
+					String detail = arr.getJSONObject(i).getString("detail");
+					String player = arr.getJSONObject(i).getJSONObject("player").getString("name");
 
-						}
-						if (team_id == away_id) {
-							card++;
-							awayCard++;
-						}
-					}
-				}
-					break;
-				case "Goal": {
-					if (time < 45) {
-						if (team_id == home_id) {
-							cleanSheetAway = false;
-							goal++;
-							goalFirstHalf++;
-							home_goal_first_half++;
-							if (time < 10) {
-								home_ten_min_goal++;
+					switch (type) {
+					case "Card": {
+						
+							if (detail.equals("Red Card") || detail.equals("Second Yellow card")) {
+								redCard++;
 							}
-						}
-						if (team_id == away_id) {
-							cleanSheetHome = false;
-							goal++;
-							goalFirstHalf++;
-							away_goal_first_half++;
-							if (time < 10) {
-								away_ten_min_goal++;
-							}
-						}
+							if (team_id == home_id) {
+								card++;
+								homeCard++;
 
+							}
+							if (team_id == away_id) {
+								card++;
+								awayCard++;
+							}
+						
 					}
-					if (time > 45) {
-						if (team_id == home_id) {
-							cleanSheetAway = false;
-							goal++;
-							goalSecondHalf++;
-							home_goal_second_half++;
+						break;
+					case "Goal": {
+						if (detail.equals("Normal Goal") || detail.equals("Penalty")) {
+							if (time <= 45) {
+								if (team_id == home_id) {
+									cleanSheetAway = false;
+									goal++;
+									goalFirstHalf++;
+									home_goal_first_half++;
+									if (time < 10) {
+										home_ten_min_goal++;
+									}
+								}
+								if (team_id == away_id) {
+									cleanSheetHome = false;
+									goal++;
+									goalFirstHalf++;
+									away_goal_first_half++;
+									if (time < 10) {
+										away_ten_min_goal++;
+									}
+								}
+
+							}
+							if (time > 45) {
+								if (team_id == home_id) {
+									cleanSheetAway = false;
+									goal++;
+									goalSecondHalf++;
+									home_goal_second_half++;
+								}
+								if (team_id == away_id) {
+									cleanSheetHome = false;
+									goal++;
+									goalSecondHalf++;
+									away_goal_second_half++;
+								}
+								if (goal == 1) {
+									teamScoreFirst = team_name;
+								}
+							}
+
 						}
-						if (team_id == away_id) {
-							cleanSheetHome = false;
-							goal++;
-							goalSecondHalf++;
-							away_goal_second_half++;
+						if (detail.equals("Own Goal")) {
+							if (time <= 45) {
+								if (team_id == home_id) {
+									cleanSheetHome = false;
+									goal++;
+									goalFirstHalf++;
+									away_goal_first_half++;
+									if (time < 10) {
+										away_ten_min_goal++;
+									}
+								}
+								if (team_id == away_id) {
+									cleanSheetAway = false;
+									goal++;
+									goalFirstHalf++;
+									home_goal_first_half++;
+									if (time < 10) {
+										home_ten_min_goal++;
+									}
+								}
+
+							}
+							if (time > 45) {
+								if (team_id == home_id) {
+									cleanSheetHome = false;
+									goal++;
+									goalSecondHalf++;
+									away_goal_second_half++;
+								}
+								if (team_id == away_id) {
+									cleanSheetAway = false;
+									goal++;
+									goalSecondHalf++;
+									home_goal_second_half++;
+								}
+								if (goal == 1) {
+									teamScoreFirst = team_name;
+								}
+							}
+
 						}
-						if (goal == 1) {
-							teamScoreFirst = team_name;
+						if(!detail.equals("Missed Penalty"))
+						{
+						soccers.add(player);
+						team_soccers.add(team_name);
 						}
 					}
-					soccers.add(player);
-					team_soccers.add(team_name);
-				}
+					}
 
 				}
 
@@ -405,7 +531,7 @@ public class betController {
 				for (int j = 0; j < arr_stat.length(); j++) {
 					{
 						int team_stat_id = arr_stat.getJSONObject(j).getJSONObject("team").getInt("id");
-						JSONArray arr_stat_detail = arr_stat.getJSONObject(i).getJSONArray("statistics");
+						JSONArray arr_stat_detail = arr_stat.getJSONObject(j).getJSONArray("statistics");
 						for (int k = 0; k < arr_stat_detail.length(); k++) {
 							String type_stat = arr_stat_detail.getJSONObject(k).getString("type");
 
@@ -441,6 +567,7 @@ public class betController {
 				totalShotOnGoal = homeShotOnGoal + awayShotOnGoal;
 				// set value for constructor
 				fixture_detail fd = new fixture_detail();
+				fd.setFixtureId(fixtureId);
 				fd.setMatchWinner(matchWinner);
 				fd.setSecondHalfWinner(secondHalfWinner);
 				fd.setFirstHalfWinner(firstHalfWinner);
@@ -476,6 +603,8 @@ public class betController {
 
 			}
 
+		} else {
+			return false;
 		}
 		return true;
 	}

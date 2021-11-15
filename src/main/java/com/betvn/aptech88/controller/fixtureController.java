@@ -8,8 +8,7 @@ import java.net.http.HttpResponse;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
+
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -254,6 +253,7 @@ public class fixtureController {
 							if (checkLeague(league_id, obLeague) && checkTeam(home_id, away_id, obTeam)) {
 								// get date
 								LocalDate dt = from_date.plusDays(i);
+
 								// convert to sql
 								Date d = Date.valueOf(dt);
 								// get date time string
@@ -263,21 +263,12 @@ public class fixtureController {
 								String time_string = date_time_string.substring(date_time_string.lastIndexOf("T") + 1,
 										date_time_string.lastIndexOf("+") - 1);
 								// convert to sql time
-								Time time = Time.valueOf(time_string);
-								// get right now time UTC
-								ZoneId utc_zone = ZoneId.of("UCT");
-								LocalTime time_now = LocalTime.now(utc_zone);
-								// get time match staart
-								LocalTime time_start = time.toLocalTime();
-								// calculate time between
-								long minutesBetween = ChronoUnit.MINUTES.between(time_now, time_start);
+								Time time = Time.valueOf(time_string);					
 								fixture t = new fixture();
-								// <0 mean match started
-								if (minutesBetween > 0 || i > 0) {
+
+								
 									t.setId(fixture_id);
-
 									t.setInMatch(false);
-
 									t.setHome(0);
 									t.setTime(time);
 									t.setStatus(status);
@@ -289,9 +280,7 @@ public class fixtureController {
 									t.setTime(time);
 									t.setDate(d);
 									fixtures.save(t);
-								} else {
-									continue;
-								}
+								
 							} else {
 								// if 1 or both function above return fail then pass
 								continue;

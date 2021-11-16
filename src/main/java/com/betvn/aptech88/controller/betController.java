@@ -39,8 +39,7 @@ import com.betvn.aptech88.repository.fixture_detailRepository;
 import com.betvn.aptech88.repository.oddRepository;
 import com.betvn.aptech88.repository.transactionRepository;
 import com.betvn.aptech88.repository.walletRepository;
-import com.paypal.api.payments.Amount;
-import com.paypal.api.payments.Transaction;
+
 
 import ultis.mapping;
 
@@ -122,7 +121,11 @@ public class betController {
 					// create history bet
 					bet_history bh = new bet_history();
 					bh.setAccountId(w.getAccountId());
-					bh.setBet(bet.getId());
+					bh.setBetId(bet.getId());
+					//get now date
+					LocalDate date = LocalDate.now();
+					Date sqlDate = Date.valueOf(date);
+					bh.setDate(sqlDate);
 					bet_histories.save(bh);
 
 					return ResponseEntity.status(200).body("Betted");
@@ -173,10 +176,17 @@ public class betController {
 		List<bet> bet_list = bets.findByWin(0);
 		for (int i = 0; i < bet_list.size(); i++) {
 			// get bet detail list
-
+			Boolean flag = true;
 			List<betdetail> betdetail_list = bet_list.get(i).getBetdetail();
 
 			for (int j = 0; j < betdetail_list.size(); j++) {
+				if(betdetail_list.get(j).getWin() == null)
+				{
+					flag = false;
+					break;
+					
+				}
+				
 				if(betdetail_list.get(j).getWin() == false)
 				{
 					double lossAmount = bet_list.get(i).getBetAmount();
@@ -187,6 +197,10 @@ public class betController {
 					continue;
 				}			
 
+			}
+			if(flag == false)
+			{
+				continue;
 			}
 			if(bet_list.get(i).getWin() == 0)
 			{

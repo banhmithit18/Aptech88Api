@@ -1,14 +1,20 @@
 package com.betvn.aptech88.model;
 
+import java.sql.Date;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Table;
 
-import javax.persistence.Id;
-;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 @Entity
 @Table(name = "bet_history")
@@ -20,12 +26,17 @@ public class bet_history {
 	@Column(name = "account_id")
 	private int accountId;
 	
-	@Column(name = "fixture_id")
-	private int fixtureId;
-	
 	@Column(name = "bet_id")
-	private int bet;
+	private int betId;
 
+	@Column(name = "date")
+	private Date date;
+	
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "bet_id", referencedColumnName = "id", insertable = false, updatable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
+	private bet bet;
+	
 	public int getId() {
 		return id;
 	}
@@ -42,22 +53,29 @@ public class bet_history {
 		this.accountId = accountId;
 	}
 
-	public int getFixtureId() {
-		return fixtureId;
+	public int getBetId() {
+		return betId;
 	}
 
-	public void setFixtureId(int fixtureId) {
-		this.fixtureId = fixtureId;
+	public void setBetId(int betId) {
+		this.betId = betId;
 	}
 
-	public int getBet() {
+	public bet getBet() {
 		return bet;
 	}
 
-	public void setBet(int bet) {
+	public void setBet(bet bet) {
 		this.bet = bet;
 	}
-	
-	
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
+	}
+
 }
 

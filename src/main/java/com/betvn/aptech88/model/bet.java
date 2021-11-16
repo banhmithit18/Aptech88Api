@@ -46,6 +46,9 @@ public class bet {
 	@Column(name = "returnable")
 	private Boolean returnable;
 	
+	@JsonIgnore
+	@OneToMany(mappedBy = "bet")
+	private List<bet_history> bet_history;
 	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)

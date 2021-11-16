@@ -71,9 +71,27 @@ public final class mapping {
 	public static final String ODD_EDIT ="/OddEdit";
 	public static final String ODD_DELETE ="/OddDelete";
 	//bet
+	
 	public static final String BET_CREATE ="/BetCreate";
 	public static final String BET_EDIT ="/BetEdit";
 	public static final String BET_DELETE ="/BetDelete";
+	public static final String BET_RETURN = "/BetReturn";
+	public static final String BET_RESULT ="/BetReuslt";
+	
+	//transaction
+	public static final String TRANSACTION_FINDBYID ="/TransactionFindById";
+	public static final String TRANSACTION_FINDBYREASON ="/TransactionFindByReason";
+	public static final String TRANSACTION_FINDBYSTATUS ="/TransactionFindByStatus";
+	public static final String TRANSACTION_FINDBYDATE ="/TransactionFindByDate";
+	public static final String TRANSACTION_FINDBYWALLET ="/TransactionFindByWallet";
+	public static final String TRANSACTION_GET ="/TransactionGet";
+	
+	//bet history
+	public static final String HISTORY_GET ="/HistoryGet";
+	public static final String HISTORY_FINDBYACCOUNT ="/HistoryFindByAccount";
+	public static final String HISTORY_FINDBYID ="/HistoryFindById";
+	public static final String HISTORY_FINDBYDATE ="/HistoryFindByDate";
+	
 	//key
 	public static final String API_KEY = "c20af5d45emsh3116f32c09643fcp1848d8jsn2559bfc29c69";
 	

@@ -615,9 +615,9 @@ public class betController {
 				}
 			}
 		}
-		
+
 		// Home Odd/Even
-		case 23:{
+		case 23: {
 			if (value.equals("Even")) {
 				if (fd.getHomeGoal() % 2 == 0) {
 					return true;
@@ -632,9 +632,51 @@ public class betController {
 				}
 			}
 		}
+
+		// Results/Both Teams Score
+		case 24: {
+			String result = "";
+			if (fd.getBothTeamScore()) {
+				result = fd.getMatchWinner()+"/"+"Yes";
+			}
+			else
+			{
+				result = fd.getMatchWinner()+"/"+"No";
+			}
+			if(value.equals(result))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+			
+		}
 		
-		//
-		case 24:{
+		// Results/Total Goals
+		case 25:{
+			double handicap = 0;
+			if (value.contains("Over")) {
+				handicap = Double.valueOf(value.substring(10));
+				if (fd.getGoal() < handicap && value.substring(0,value.indexOf("/")-1).equals(fd.getMatchWinner())) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (value.contains("Under")) {
+				handicap = Double.valueOf(value.substring(11));
+				if (fd.getGoal() > handicap && value.substring(0,value.indexOf("/")-1).equals(fd.getMatchWinner())) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+		
+		//Goals Over/Under - Second Half
+		case 26:{
 			
 		}
 		}

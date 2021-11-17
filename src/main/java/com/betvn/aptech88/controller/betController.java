@@ -40,7 +40,6 @@ import com.betvn.aptech88.repository.oddRepository;
 import com.betvn.aptech88.repository.transactionRepository;
 import com.betvn.aptech88.repository.walletRepository;
 
-
 import ultis.mapping;
 
 @RestController
@@ -122,7 +121,7 @@ public class betController {
 					bet_history bh = new bet_history();
 					bh.setAccountId(w.getAccountId());
 					bh.setBetId(bet.getId());
-					//get now date
+					// get now date
 					LocalDate date = LocalDate.now();
 					Date sqlDate = Date.valueOf(date);
 					bh.setDate(sqlDate);
@@ -180,41 +179,35 @@ public class betController {
 			List<betdetail> betdetail_list = bet_list.get(i).getBetdetail();
 
 			for (int j = 0; j < betdetail_list.size(); j++) {
-				if(betdetail_list.get(j).getWin() == null)
-				{
+				if (betdetail_list.get(j).getWin() == null) {
 					flag = false;
 					break;
-					
+
 				}
-				
-				if(betdetail_list.get(j).getWin() == false)
-				{
+
+				if (betdetail_list.get(j).getWin() == false) {
 					double lossAmount = bet_list.get(i).getBetAmount();
 					bet_list.get(i).setWin(-lossAmount);
-				}
-				else
-				{
+				} else {
 					continue;
-				}			
+				}
 
 			}
-			if(flag == false)
-			{
+			if (flag == false) {
 				continue;
 			}
-			if(bet_list.get(i).getWin() == 0)
-			{
-				double winAmount = bet_list.get(i).getBetAmount()* bet_list.get(i).getOdd();
+			if (bet_list.get(i).getWin() == 0) {
+				double winAmount = bet_list.get(i).getBetAmount() * bet_list.get(i).getOdd();
 				bet_list.get(i).setWin(winAmount);
-				//get wallet
+				// get wallet
 				wallet w = bet_list.get(i).getWallet();
-				//get admin wallet id
+				// get admin wallet id
 				wallet w_a = wallets.findById(1);
 				w_a.setAmount(w_a.getAmount() - winAmount);
 				w.setAmount(w.getAmount() + winAmount);
 				wallets.save(w);
 				wallets.save(w_a);
-				//create transaction
+				// create transaction
 				transaction t = new transaction();
 				t.setAmount(winAmount);
 				t.setFromWallet(1);
@@ -224,24 +217,23 @@ public class betController {
 				LocalDate d = LocalDate.now();
 				Date date = Date.valueOf(d);
 				t.setTransactionDate(date);
-				transactions.save(t);	
+				transactions.save(t);
 				bet_list.get(i).setStatus(true);
 				bets.save(bet_list.get(i));
-				
+
 			}
-			if(bet_list.get(i).getWin() < 0)
-			{
+			if (bet_list.get(i).getWin() < 0) {
 				double lossAmount = bet_list.get(i).getBetAmount();
 				bet_list.get(i).setWin(-lossAmount);
-				//get wallet
+				// get wallet
 				wallet w = bet_list.get(i).getWallet();
-				//get admin wallet id
+				// get admin wallet id
 				wallet w_a = wallets.findById(1);
 				w.setAmount(w_a.getAmount() - lossAmount);
 				w_a.setAmount(w_a.getAmount() + Math.abs(lossAmount));
 				wallets.save(w);
 				wallets.save(w_a);
-				//create transaction
+				// create transaction
 				transaction t = new transaction();
 				t.setAmount(Math.abs(lossAmount));
 				t.setFromWallet(w.getId());
@@ -255,7 +247,6 @@ public class betController {
 				bet_list.get(i).setStatus(true);
 				bets.save(bet_list.get(i));
 			}
-			
 
 		}
 		return "Returned";
@@ -268,6 +259,7 @@ public class betController {
 		fixture_detail fd = fixture_details.findByFixtureId(fixture_id);
 
 		switch (bettype_id) {
+
 		// match winner
 		case 1: {
 			if (fd.getMatchWinner().equals(value)) {
@@ -276,6 +268,7 @@ public class betController {
 				return false;
 			}
 		}
+
 		// second half winner
 		case 3: {
 			if (fd.getSecondHalfWinner().equals(value)) {
@@ -284,8 +277,8 @@ public class betController {
 				return false;
 			}
 		}
-		// home/away
 
+		// home/away
 		case 2: {
 
 			if (value.equals("Home")) {
@@ -303,6 +296,7 @@ public class betController {
 				}
 			}
 		}
+
 		// asian handicap
 		case 4: {
 			// get home or away
@@ -327,7 +321,7 @@ public class betController {
 				}
 			}
 		}
-			break;
+
 		// goal upder/over
 		case 5: {
 			double handicap = 0;
@@ -347,12 +341,304 @@ public class betController {
 					return false;
 				}
 			}
+		}
+
+		// goal over/under first half
+		case 6: {
+			double handicap = 0;
+			if (value.contains("Over")) {
+				handicap = Double.valueOf(value.substring(5));
+				if (fd.getGoalFirstHalf() < handicap) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (value.contains("Under")) {
+				handicap = Double.valueOf(value.substring(6));
+				if (fd.getGoalFirstHalf() > handicap) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		// HT/FT Double
+		case 7: {
+			// get result
+			String result = fd.getFirstHalfWinner() + "/" + fd.getMatchWinner();
+			if (result.equals(value)) {
+				return true;
+			} else {
+				return false;
+			}
 
 		}
-			break;
 
+		// Both teams score
+		case 8: {
+			if (value.toLowerCase().equals(fd.getBothTeamScore().toString())) {
+				return true;
+			} else {
+				return false;
+			}
 		}
-		return null;
+
+		// handicap result
+		case 9: {
+			String team = value.substring(0, 4);
+			double handicap = Double.valueOf(value.substring(5));
+			if (team.equals("Home")) {
+				int away_goal = fd.getAwayGoal();
+				double home_goal = fd.getHomeGoal() + handicap;
+				if (home_goal > away_goal) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (team.equals("Away")) {
+				double away_goal = fd.getAwayGoal() + handicap;
+				int home_goal = fd.getHomeGoal();
+				if (home_goal < away_goal) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		// exact score
+		case 10: {
+			if (fd.getExactScore().equals(value)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		// highest scroing half
+		case 11: {
+			int first_half_goal = fd.getGoalFirstHalf();
+			int second_half_goal = fd.getGoalSecondHalf();
+			String result = "";
+			if (first_half_goal > second_half_goal) {
+				result = "1st Half";
+			} else if (first_half_goal < second_half_goal) {
+				result = "2nd Half";
+			} else {
+				result = "Draw";
+			}
+			if (value.equals(result)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		// Double Chance
+		case 12: {
+			// get chance
+			String chance_first = value.substring(value.lastIndexOf("/") + 1);
+			String chance_second = value.substring(0, value.lastIndexOf("/") - 1);
+
+			if (fd.getMatchWinner().equals(chance_second) || fd.getMatchWinner().equals(chance_first)) {
+				return true;
+			}
+			if (!fd.getMatchWinner().equals(chance_second) || !fd.getMatchWinner().equals(chance_first)) {
+				return false;
+			}
+		}
+
+		// First Half Winner
+		case 13: {
+			if (fd.getFirstHalfWinner().equals(value)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		// Team to Score First
+		case 14: {
+			if (fd.getTeamScoreFirst().equals(value)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		// Team to Score Last
+		case 15: {
+			if (fd.getTeamScoreLast().equals(value)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		// Total - Home
+		case 16: {
+			double handicap = 0;
+			if (value.contains("Over")) {
+				handicap = Double.valueOf(value.substring(5));
+				if (fd.getHomeGoal() < handicap) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (value.contains("Under")) {
+				handicap = Double.valueOf(value.substring(6));
+				if (fd.getHomeGoal() > handicap) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		// Total - Away
+		case 17: {
+			double handicap = 0;
+			if (value.contains("Over")) {
+				handicap = Double.valueOf(value.substring(5));
+				if (fd.getAwayGoal() < handicap) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (value.contains("Under")) {
+				handicap = Double.valueOf(value.substring(6));
+				if (fd.getAwayGoal() > handicap) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		// Handicap Result - First Half
+		case 18: {
+			String team = value.substring(0, 4);
+			double handicap = Double.valueOf(value.substring(5));
+			if (team.equals("Home")) {
+				int away_goal = fd.getAwayGoalFirstHalf();
+				double home_goal = fd.getHomeGoalFirstHalf() + handicap;
+				if (home_goal > away_goal) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (team.equals("Away")) {
+				double away_goal = fd.getAwayGoalFirstHalf() + handicap;
+				int home_goal = fd.getHomeGoalFirstHalf();
+				if (home_goal < away_goal) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		// Asian Handciap First Half
+		case 19: {
+			String team = value.substring(0, 4);
+			double handicap = Double.valueOf(value.substring(5));
+			if (team.equals("Home")) {
+				int away_goal = fd.getAwayGoalFirstHalf();
+				double home_goal = fd.getHomeGoalFirstHalf() + handicap;
+				if (home_goal > away_goal) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (team.equals("Away")) {
+				double away_goal = fd.getAwayGoalFirstHalf() + handicap;
+				int home_goal = fd.getHomeGoalFirstHalf();
+				if (home_goal < away_goal) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		// Double Chance - First Half
+		case 20: {
+			// get chance
+			String chance_first = value.substring(value.lastIndexOf("/") + 1);
+			String chance_second = value.substring(0, value.lastIndexOf("/") - 1);
+
+			if (fd.getFirstHalfWinner().equals(chance_second) || fd.getFirstHalfWinner().equals(chance_first)) {
+				return true;
+			}
+			if (!fd.getFirstHalfWinner().equals(chance_second) || !fd.getFirstHalfWinner().equals(chance_first)) {
+				return false;
+			}
+		}
+
+		// Odd/Even
+		case 21: {
+			if (value.equals("Even")) {
+				if (fd.getGoal() % 2 == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else if (value.equals("Odd")) {
+				if (fd.getGoal() % 2 != 0) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		// Odd/Even - First Half
+		case 22: {
+			if (value.equals("Even")) {
+				if (fd.getGoalFirstHalf() % 2 == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else if (value.equals("Odd")) {
+				if (fd.getGoalFirstHalf() % 2 != 0) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+		
+		// Home Odd/Even
+		case 23:{
+			if (value.equals("Even")) {
+				if (fd.getHomeGoal() % 2 == 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} else if (value.equals("Odd")) {
+				if (fd.getHomeGoal() % 2 != 0) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+		
+		//
+		case 24:{
+			
+		}
+		}
+		return false;
 	}
 
 	// cannot get method goal, first , second half corner, first/last corner
@@ -381,7 +667,7 @@ public class betController {
 				String correctScoreFirstHalf = "0:0";
 				String correctScoreSecondHalf = "0:0";
 				String teamScoreFirst = "Draw";
-				String teamScoreLast = "Draw";
+				String teamScoreLast = "No goal";
 				String tenMinWinner = "Draw";
 				int homeGoal = 0;
 				int awayGoal = 0;
@@ -437,7 +723,6 @@ public class betController {
 
 					int time = arr.getJSONObject(i).getJSONObject("time").getInt("elapsed");
 					int team_id = arr.getJSONObject(i).getJSONObject("team").getInt("id");
-					String team_name = arr.getJSONObject(i).getJSONObject("team").getString("name");
 					String type = arr.getJSONObject(i).getString("type");
 					String detail = arr.getJSONObject(i).getString("detail");
 					String player = arr.getJSONObject(i).getJSONObject("player").getString("name");
@@ -481,7 +766,6 @@ public class betController {
 										away_ten_min_goal++;
 									}
 								}
-
 							}
 							if (time > 45) {
 								if (team_id == home_id) {
@@ -496,11 +780,7 @@ public class betController {
 									goalSecondHalf++;
 									away_goal_second_half++;
 								}
-								if (goal == 1) {
-									teamScoreFirst = team_name;
-								}
 							}
-
 						}
 						if (detail.equals("Own Goal")) {
 							if (time <= 45) {
@@ -537,15 +817,19 @@ public class betController {
 									goalSecondHalf++;
 									home_goal_second_half++;
 								}
-								if (goal == 1) {
-									teamScoreFirst = team_name;
-								}
 							}
 
 						}
 						if (!detail.equals("Missed Penalty")) {
 							soccers.add(player);
-							team_soccers.add(team_name);
+
+							if (team_id == away_id) {
+								team_soccers.add("Away");
+							}
+
+							if (team_id == home_id) {
+								team_soccers.add("Home");
+							}
 						}
 					}
 					}
@@ -599,7 +883,7 @@ public class betController {
 				try {
 					teamScoreLast = team_soccers.get(team_soccers.size() - 1);
 				} catch (Exception ex) {
-					teamScoreLast = "Draw";
+					teamScoreLast = "No goal";
 				}
 				// calculate team score first
 				try {
@@ -701,7 +985,12 @@ public class betController {
 				fd.setTotalShotOnGoal(totalShotOnGoal);
 				fd.setHomeShotOnGoal(homeShotOnGoal);
 				fd.setAwayShotOnGoal(awayShotOnGoal);
+				fd.setHomeGoalFirstHalf(home_goal_first_half);
+				fd.setHomeGoalSecondHalf(home_goal_second_half);
+				fd.setAwayGoalFirstHalf(away_goal_first_half);
+				fd.setAwayGoalSecondHalf(away_goal_second_half);
 				fd.setSoccers(soccers.toString());
+
 				// save
 				fixture_details.save(fd);
 				return true;

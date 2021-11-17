@@ -50,7 +50,6 @@ public class fixture {
 	@Column(name = "in_match")
 	private Boolean inMatch;	
 	
-	
 	@OneToMany(mappedBy = "fixture")
 	private List<odd> odd;
 	
@@ -195,10 +194,5 @@ public class fixture {
 	public void setTime(Time time) {
 		this.time = time;
 	}
-
-
-
-	
-	
 }
 

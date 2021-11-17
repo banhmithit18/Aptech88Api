@@ -133,6 +133,18 @@ public class fixture_detail {
 	@Column(name = "soccers")
 	private String soccers ;
 	
+	@Column(name = "home_goal_first_half")
+	private int homeGoalFirstHalf;
+	
+	@Column(name = "away_goal_first_half")
+	private int awayGoalFirstHalf ;
+	
+	@Column(name = "home_goal_second_half")
+	private  int homeGoalSecondHalf ;
+	
+	@Column(name = "away_goal_second_half")
+	private int awayGoalSecondHalf ;
+	
 	@JsonIgnore
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "fixture_id", referencedColumnName = "id", insertable = false, updatable = false)
@@ -443,8 +455,36 @@ public class fixture_detail {
 		this.fixture = fixture;
 	}
 
-	
-	
-	
-	
+	public int getHomeGoalFirstHalf() {
+		return homeGoalFirstHalf;
+	}
+
+	public void setHomeGoalFirstHalf(int homeGoalFirstHalf) {
+		this.homeGoalFirstHalf = homeGoalFirstHalf;
+	}
+
+	public int getAwayGoalFirstHalf() {
+		return awayGoalFirstHalf;
+	}
+
+	public void setAwayGoalFirstHalf(int awayGoalFirstHalf) {
+		this.awayGoalFirstHalf = awayGoalFirstHalf;
+	}
+
+	public int getHomeGoalSecondHalf() {
+		return homeGoalSecondHalf;
+	}
+
+	public void setHomeGoalSecondHalf(int homeGoalSecondHalf) {
+		this.homeGoalSecondHalf = homeGoalSecondHalf;
+	}
+
+	public int getAwayGoalSecondHalf() {
+		return awayGoalSecondHalf;
+	}
+
+	public void setAwayGoalSecondHalf(int awayGoalSecondHalf) {
+		this.awayGoalSecondHalf = awayGoalSecondHalf;
+	}
+
 }

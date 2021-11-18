@@ -7,6 +7,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,11 +83,11 @@ public class betController {
 				// find wallet
 				wallet w = wallets.findById(bbo.getBet().getWalletId());
 				if (w != null) {
-					double amout_left = w.getAmount();
+					double amount_left = w.getAmount();
 					double amount_bet = bbo.getBet().getBetAmount();
-					if (amount_bet > amout_left) {
+					if (amount_bet > amount_left) {
 						return ResponseEntity.status(404).body("Balance insufficient");
-					}
+					}					
 					double odd_value = 1;
 					// create bet (only need bet ammount, wallet with bet constructor)
 					bet bet = new bet();
@@ -107,7 +111,6 @@ public class betController {
 						betdetail.setStatus(betdetail_odd.getStatus());
 						// win = null mean not calculate yet
 						betdetail.setWin(null);
-
 						if (betdetail.getStatus() == false) {
 							bet.setReturnable(false);
 						}
@@ -116,7 +119,9 @@ public class betController {
 					}
 					bet.setOdd(odd_value);
 					bet = bets.save(bet);
-
+					//change amount bet
+					w.setAmount(amount_left - amount_bet);
+					wallets.save(w);
 					// create history bet
 					bet_history bh = new bet_history();
 					bh.setAccountId(w.getAccountId());
@@ -145,14 +150,11 @@ public class betController {
 
 	@RequestMapping("BetResult")
 	public String result() throws IOException, InterruptedException {
-		// init match detail
 		// get all bet where status = false
 		List<bet> bet_list = bets.findByStatusFalse();
 		for (int i = 0; i < bet_list.size(); i++) {
 			// get bet detail list
-
 			List<betdetail> betdetail_list = bet_list.get(i).getBetdetail();
-
 			for (int j = 0; j < betdetail_list.size(); j++) {
 				int fixture_id = betdetail_list.get(j).getOdd().getFixtureId();
 				if (checkFixtureDetail(fixture_id)) {
@@ -637,29 +639,24 @@ public class betController {
 		case 24: {
 			String result = "";
 			if (fd.getBothTeamScore()) {
-				result = fd.getMatchWinner()+"/"+"Yes";
+				result = fd.getMatchWinner() + "/" + "Yes";
+			} else {
+				result = fd.getMatchWinner() + "/" + "No";
 			}
-			else
-			{
-				result = fd.getMatchWinner()+"/"+"No";
-			}
-			if(value.equals(result))
-			{
+			if (value.equals(result)) {
 				return true;
-			}
-			else
-			{
+			} else {
 				return false;
 			}
-			
+
 		}
-		
+
 		// Results/Total Goals
-		case 25:{
+		case 25: {
 			double handicap = 0;
 			if (value.contains("Over")) {
 				handicap = Double.valueOf(value.substring(10));
-				if (fd.getGoal() < handicap && value.substring(0,value.indexOf("/")-1).equals(fd.getMatchWinner())) {
+				if (fd.getGoal() < handicap && value.substring(0, value.indexOf("/") - 1).equals(fd.getMatchWinner())) {
 					return true;
 				} else {
 					return false;
@@ -667,17 +664,17 @@ public class betController {
 			}
 			if (value.contains("Under")) {
 				handicap = Double.valueOf(value.substring(11));
-				if (fd.getGoal() > handicap && value.substring(0,value.indexOf("/")-1).equals(fd.getMatchWinner())) {
+				if (fd.getGoal() > handicap && value.substring(0, value.indexOf("/") - 1).equals(fd.getMatchWinner())) {
 					return true;
 				} else {
 					return false;
 				}
 			}
 		}
-		
-		//Goals Over/Under - Second Half
-		case 26:{
-			
+
+		// Goals Over/Under - Second Half
+		case 26: {
+
 		}
 		}
 		return false;
@@ -685,6 +682,8 @@ public class betController {
 
 	// cannot get method goal, first , second half corner, first/last corner
 	public boolean checkFixtureDetail(int fixtureId) throws IOException, InterruptedException {
+		//check fixture inMatch
+		checkInMatch(fixtureId);
 		// check if fixture is start
 		fixture fixture = fixtures.findById(fixtureId);
 		if (fixture.getInMatch() == true) {
@@ -729,7 +728,6 @@ public class betController {
 				int awayShotOnGoal = 0;
 				String firstGoalMethod = "None";
 				List<String> soccers = new ArrayList<String>();
-
 				List<String> team_soccers = new ArrayList<String>();
 				int home_goal_first_half = 0;
 				int away_goal_first_half = 0;
@@ -1032,17 +1030,36 @@ public class betController {
 				fd.setAwayGoalFirstHalf(away_goal_first_half);
 				fd.setAwayGoalSecondHalf(away_goal_second_half);
 				fd.setSoccers(soccers.toString());
-
 				// save
 				fixture_details.save(fd);
 				return true;
-
 			}
-
 		} else {
 			return false;
 		}
+	}
 
+	public void checkInMatch(int fixtureId) {
+		fixture fix = fixtures.findById(fixtureId);
+		
+			// get date, time match start
+			LocalDate date_match = LocalDate.parse((CharSequence) fix.getDate());
+			LocalTime time_match = LocalTime.parse((CharSequence) fix.getTime());
+			// convert into date time
+			LocalDateTime date_time_match = date_match.atTime(time_match);
+			// setting UTC as the timezone
+			ZoneId zonedUTC = ZoneId.of("UTC");
+			// date time now
+			LocalDateTime date_time_now = LocalDateTime.now(zonedUTC);
+			// date match finish
+			long hourBetween = ChronoUnit.HOURS.between(date_time_match.plusHours(120), date_time_now);
+			if(hourBetween < 0)
+			{
+				fix.setInMatch(true);
+				fixtures.save(fix);
+			}
+
+		
 	}
 
 	public boolean checkBettype(List<betdetail_odd> bo) {
@@ -1085,7 +1102,6 @@ public class betController {
 				} catch (Exception ex) {
 					return null;
 				}
-
 			}
 		}
 		return bo;

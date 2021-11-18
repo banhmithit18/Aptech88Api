@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.betvn.aptech88.model.account;
 import com.betvn.aptech88.model.wallet;
 import com.betvn.aptech88.repository.walletRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;

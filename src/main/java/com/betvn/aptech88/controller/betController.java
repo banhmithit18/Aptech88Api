@@ -81,19 +81,19 @@ public class betController {
 			List<betdetail_odd> bd = checkOdd(bbo.getBetdetail_odds());
 			if (bd != null) {
 				// find wallet
-				wallet w = wallets.findById(bbo.getBet().getWalletId());
+				wallet w = wallets.findById(bbo.getWalletId());
 				if (w != null) {
 					double amount_left = w.getAmount();
-					double amount_bet = bbo.getBet().getBetAmount();
+					double amount_bet = bbo.getBetAmount();
 					if (amount_bet > amount_left) {
 						return ResponseEntity.status(404).body("Balance insufficient");
 					}					
 					double odd_value = 1;
 					// create bet (only need bet ammount, wallet with bet constructor)
 					bet bet = new bet();
-					bet.setBetAmount(bbo.getBet().getBetAmount());
+					bet.setBetAmount(bbo.getBetAmount());
 					// set wallet
-					bet.setWalletId(bbo.getBet().getWalletId());
+					bet.setWalletId(bbo.getWalletId());
 					// false = not return yet
 					bet.setReturnable(true);
 					// set status = false mean not check win or lost yet

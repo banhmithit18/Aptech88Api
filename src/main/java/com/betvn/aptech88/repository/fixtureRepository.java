@@ -19,4 +19,6 @@ public interface fixtureRepository extends JpaRepository<fixture, Integer> {
 	
 	List<fixture> findAllByLeagueId(int leagueId);
 	
+	List<fixture> findByInMatchFalse();
+	
 }

@@ -1041,10 +1041,10 @@ public class betController {
 
 	public void checkInMatch(int fixtureId) {
 		fixture fix = fixtures.findById(fixtureId);
-		
+
 			// get date, time match start
-			LocalDate date_match = LocalDate.parse((CharSequence) fix.getDate());
-			LocalTime time_match = LocalTime.parse((CharSequence) fix.getTime());
+			LocalDate date_match =  fix.getDate().toLocalDate();
+			LocalTime time_match =  fix.getTime().toLocalTime();
 			// convert into date time
 			LocalDateTime date_time_match = date_match.atTime(time_match);
 			// setting UTC as the timezone
@@ -1053,7 +1053,7 @@ public class betController {
 			LocalDateTime date_time_now = LocalDateTime.now(zonedUTC);
 			// date match finish
 			long hourBetween = ChronoUnit.HOURS.between(date_time_match.plusHours(120), date_time_now);
-			if(hourBetween < 0)
+			if(hourBetween <= 0)
 			{
 				fix.setInMatch(true);
 				fixtures.save(fix);
@@ -1094,7 +1094,7 @@ public class betController {
 					odd created = new odd();
 					created.setBettypeId(betdetail_odd.getBettypeId());
 					created.setFixtureId(betdetail_odd.getFixtureId());
-					;
+					
 					created.setOddValue(betdetail_odd.getOddValue());
 					created.setValue(betdetail_odd.getValue());
 					created = odds.save(created);

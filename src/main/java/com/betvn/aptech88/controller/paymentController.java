@@ -55,7 +55,7 @@ public class paymentController {
 		    // get current amount
 			double current_amount = w.getAmount();
 			//check if deposit_amount > today
-			if(p.getAmount() > a.getTodayDeposit())
+			if((p.getAmount() + a.getTodayDeposit()) < a.getMaximumDeposit() && a.getMaximumDeposit() > 0)
 			{
 				return ResponseEntity.status(499).body("You have reached your daily deposit limit.");
 			}

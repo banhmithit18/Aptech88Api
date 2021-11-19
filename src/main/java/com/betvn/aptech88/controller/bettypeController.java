@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,6 +23,7 @@ import com.betvn.aptech88.repository.bettypeRepository;
 
 import ultis.mapping;
 
+@CrossOrigin(origins = "http://localhost:8080/")
 @RestController
 public class bettypeController {
 	@Autowired
@@ -164,6 +166,13 @@ public class bettypeController {
 		} catch (InterruptedException iex) {
 			return iex.getMessage();
 		}
+
+	}
+	//get with id fixture
+	@RequestMapping(value = "/GetBettypeById", method = RequestMethod.POST, consumes = { "application/json" })
+	public bettype GetBettypeById(@RequestBody bettype f) {
+		bettype odd = bettypes.findById(f.getId());
+		return odd;
 
 	}
 }

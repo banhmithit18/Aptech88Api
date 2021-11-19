@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.betvn.aptech88.model.odd;
 import com.betvn.aptech88.repository.oddRepository;
 
-@CrossOrigin(origins = "http://localhost:8080/")
+@CrossOrigin(origins = "http://localhost:8000/")
 @RestController
 public class oddController {
 	@Autowired

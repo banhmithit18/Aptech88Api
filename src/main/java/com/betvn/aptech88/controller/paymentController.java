@@ -27,7 +27,7 @@ import com.betvn.aptech88.repository.walletRepository;
 
 import ultis.mapping;
 
-@CrossOrigin(origins = "http://localhost:8080/")
+@CrossOrigin(origins = "http://localhost:8000/")
 @RestController
 public class paymentController {
 	@Autowired

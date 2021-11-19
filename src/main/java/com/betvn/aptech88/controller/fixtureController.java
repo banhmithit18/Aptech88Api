@@ -33,7 +33,7 @@ import com.betvn.aptech88.repository.teamRepository;
 
 import ultis.mapping;
 
-@CrossOrigin(origins = "http://localhost:8080/")
+@CrossOrigin(origins = "http://localhost:8000/")
 @RestController
 public class fixtureController {
 

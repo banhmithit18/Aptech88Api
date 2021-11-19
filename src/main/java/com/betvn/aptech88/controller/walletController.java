@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ultis.mapping;
 
-@CrossOrigin(origins = "http://localhost:8080/")
+@CrossOrigin(origins = "http://localhost:8000/")
 @RestController
 public class walletController {
 	@Autowired walletRepository wallets;

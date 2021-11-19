@@ -43,7 +43,7 @@ import net.bytebuddy.utility.RandomString;
 import ultis.emailContent;
 import ultis.mapping;
 
-@CrossOrigin(origins = "http://localhost:8080/")
+@CrossOrigin(origins = "http://localhost:8000/")
 @RestController
 public class accountController {
 	@Autowired

@@ -252,6 +252,7 @@ public class accountController {
 			}
 			acc.setAddress(c.getAddress());
 			acc.setProvince(c.getProvince());
+			acc.setCountry(c.getCountry());
 			acc.setName(c.getName());
 			acc.setAge(c.getAge());
 			acc.setPhonenumber(c.getPhonenumber());

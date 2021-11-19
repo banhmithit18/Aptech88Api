@@ -26,8 +26,8 @@ public class PaypalController {
     public ResponseEntity<String> payment(@RequestBody Order order) {
         try {
             Payment payment = service.createPayment(order.getPrice(), order.getCurrency(), order.getMethod(),
-                    order.getIntent(), order.getDescription(), "http://192.168.1.7:8080/" + CANCEL_URL,
-                    "http://192.168.1.7:8080/" + SUCCESS_URL);
+                    order.getIntent(), order.getDescription(), "http://192.168.1.7:8000/" + CANCEL_URL,
+                    "http://192.168.1.7:8000/" + SUCCESS_URL);
             for(Links link:payment.getLinks()) {
                 if(link.getRel().equals("approval_url")) {
                 	String okela=link.getHref();

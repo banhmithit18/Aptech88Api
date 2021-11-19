@@ -61,7 +61,7 @@ public class accountController {
 	// get account
 	@RequestMapping(value = mapping.ACCOUNT_GET)
 	public List<account> get() {
-		List<account> account_list = accounts.findAll();
+		List<account> account_list = accounts.findByUsernameNot("admin");
 		return account_list;
 	}
 	//find account by id of android

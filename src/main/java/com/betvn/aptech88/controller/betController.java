@@ -173,7 +173,8 @@ public class betController {
 
 	// return if win or not
 	@RequestMapping("/BetReturn")
-	public String returnBet() {
+	public String returnBet() throws IOException, InterruptedException {
+		result();
 		List<bet> bet_list = bets.findByWin(0);
 		for (int i = 0; i < bet_list.size(); i++) {
 			// get bet detail list
@@ -1052,8 +1053,8 @@ public class betController {
 			// date time now
 			LocalDateTime date_time_now = LocalDateTime.now(zonedUTC);
 			// date match finish
-			long hourBetween = ChronoUnit.HOURS.between(date_time_match.plusHours(120), date_time_now);
-			if(hourBetween <= 0)
+			long hourBetween = ChronoUnit.HOURS.between(date_time_match.plusMinutes(120), date_time_now);
+			if(hourBetween > 0)
 			{
 				fix.setInMatch(true);
 				fixtures.save(fix);
@@ -1083,8 +1084,8 @@ public class betController {
 			if (f == null) {
 				return null;
 			}
-			odd o = odds.findByValueAndBettypeIdAndOddValue(betdetail_odd.getValue(), betdetail_odd.getBettypeId(),
-					betdetail_odd.getOddValue());
+			odd o = odds.findByValueAndBettypeIdAndOddValueAndFixtureId(betdetail_odd.getValue(), betdetail_odd.getBettypeId(),
+					betdetail_odd.getOddValue(),f.getId());
 
 			if (o != null) {
 				betdetail_odd.setOddId(o.getId());

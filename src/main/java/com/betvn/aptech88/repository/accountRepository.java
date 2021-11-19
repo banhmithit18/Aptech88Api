@@ -1,5 +1,7 @@
 package com.betvn.aptech88.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,5 +20,6 @@ public interface accountRepository extends JpaRepository<account, Integer> {
     account findByWalletId(int walletId);
     account findByPhonenumber(String phonenumber);
     account findByEmail(String email);
+    List<account> findByUsernameNot(String username );
    
 }

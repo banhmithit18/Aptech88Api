@@ -19,3 +19,7 @@ HELP.md
 mvnw
 
 mvnw.cmd
+
+.metadata/.lock
+
+.metadata/

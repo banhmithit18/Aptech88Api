@@ -233,7 +233,7 @@ public class betController {
 				// get admin wallet id
 				wallet w_a = wallets.findById(1);
 			
-				w.setAmount(w.getAmount() - Math.abs(lossAmount));
+//				w.setAmount(w.getAmount() - Math.abs(lossAmount));
 				w_a.setAmount(w_a.getAmount() + Math.abs(lossAmount));
 				wallets.save(w);
 				wallets.save(w_a);

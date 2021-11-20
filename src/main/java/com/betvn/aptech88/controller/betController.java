@@ -18,6 +18,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -257,7 +258,13 @@ public class betController {
 		}
 		return "Returned";
 	}
-
+	
+	//run every 1 hour
+	@Scheduled(fixedRate=60*60*1000)
+	public void scheduleRunReturn() throws IOException, InterruptedException {
+		String result = returnBet();
+		System.out.println(result);
+	}
 	public Boolean calculateResultBet(betdetail bt, int fixture_id) {
 
 		int bettype_id = bt.getOdd().getBettypeId();

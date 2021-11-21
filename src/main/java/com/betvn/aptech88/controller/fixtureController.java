@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,13 @@ public class fixtureController {
 		List<fixture> list_fixture =fixtures.findAllByLeagueId(l.getId());
 		return new ResponseEntity<List<fixture>>(list_fixture, HttpStatus.OK);
 
+	}
+	//get with id league android
+	@RequestMapping(value = "getfixture")
+	public List<fixture> get_fixture(HttpServletRequest request) {
+		int id = Integer.parseInt(request.getParameter("id"));
+		List<fixture> list_fixture =fixtures.findAllByLeagueId(id);
+		return list_fixture;
 	}
 
 	// not recommend use because of api

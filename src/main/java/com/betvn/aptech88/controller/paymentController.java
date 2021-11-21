@@ -128,6 +128,14 @@ public class paymentController {
 		List<payment> payment_list = payments.findAll();
 		return payment_list;
 	}
+	
+	// find payment by wallet id
+	@RequestMapping(value = "findpayment")
+	public List<payment> find_payment(HttpServletRequest request) {
+		int id = Integer.parseInt(request.getParameter("id"));
+		List<payment> payment_list = payments.findAllByWalletId(id);
+		return payment_list;
+	}
 
 	// get wallet by account id
 	@RequestMapping(value = "/payment/getPaymentByWallet")

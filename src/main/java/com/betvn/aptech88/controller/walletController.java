@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.betvn.aptech88.model.account;
 import com.betvn.aptech88.model.wallet;
 import com.betvn.aptech88.repository.walletRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -85,4 +86,49 @@ public class walletController {
 		wallet w = wallets.findByAccountId(id);
 		return w.getAmount();
 	}
+	
+	//get wallet by account id android
+		@RequestMapping ( value = "/walletid")
+		public  ResponseEntity<?> find_walletid (HttpServletRequest request)
+		{
+			int id = Integer.parseInt(request.getParameter("id"));
+			wallet w = wallets.findByAccountId(id);
+			if( w != null)
+			{
+				//return found account
+				return new ResponseEntity<>(w, HttpStatus.CREATED);
+			}
+			else {
+				//if not found account return with id = 0
+				return ResponseEntity.status(404).body("Account not found");
+			}
+		}
+		
+		//get wallet by account id android
+		@RequestMapping ( value = "/amount_current", method = RequestMethod.POST, consumes = {"application/json"})
+		public ResponseEntity<?> find_amount (@RequestBody String id)
+		{
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				JsonNode jsonNode = mapper.readTree(id);
+				int ids=jsonNode.get("id").asInt();
+				//find account
+				wallet w = wallets.findByAccountId(ids);
+				if(w != null)
+				{
+					return new ResponseEntity<wallet>(w,HttpStatus.ACCEPTED);
+				}
+				else
+				{
+					return ResponseEntity.status(404).body("Wallet not found");		
+				}
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
 }
